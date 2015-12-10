@@ -74,3 +74,5 @@ class SenseStick(object):
         # XXX Use poll() instead?
         r, w, x = select.select([self._stick_file], [], [], timeout)
         return bool(r)
+
+
