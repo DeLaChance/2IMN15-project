@@ -16,13 +16,15 @@ def keepSensing(threadName,sstick):
         sstick.wait(timeout=10); # block (with timeout) until an event is available 
         event = sstick.read();
         key = event.key;
-        print(key);
 
-        if( key == config.UP ):
+        state = Model.getState();
+        print(str(key == config.UP) + "," + str(state));
+
+        if( key == config.UP and state == config.RESERVED ):
             Model.setState(config.OCCUPIED);
 
-        if( key == config.DOWN ):
-            Model.setState(config.FREE );
+        if( key == config.DOWN and state == config.OCCUPIED ):
+            Model.leave();
 
     print("Stopping sensing thread " + threadName);
 
