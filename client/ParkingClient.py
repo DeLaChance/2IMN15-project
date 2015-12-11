@@ -1,12 +1,14 @@
 #!/usr/bin/python
 import SensingActuating as sanda;
 import time;
+import Model;
 
 def main():
     try:
         sanda.init();
     	while True:
-	    	time.sleep(1);
+            Model.makeReservation(10,10);
+            time.sleep(5);
 
     finally:
         stop();
