@@ -1,22 +1,25 @@
 #!/usr/bin/python
-import SensingActuating as sanda;
-import time;
-import Model;
+import SensingActuating as Sanda
+import time
+import Model
+
 
 def main():
     try:
-        sanda.init();
-    	while True:
-            Model.makeReservation(10,10);
-            time.sleep(5);
+        Sanda.init()
+        while True:
+            Model.make_reservation(10, 10)
+            time.sleep(5)
 
     finally:
-        stop();
+        stop()
 
-    stop();
+    stop()
+
 
 def stop():
-    sanda.stop();
+    Sanda.stop()
 
-if __name__ == "__main__": 
-    main();
+
+if __name__ == "__main__":
+    main()
