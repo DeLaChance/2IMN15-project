@@ -1,4 +1,4 @@
 from sense_hat import SenseHat
-sense = SenseHat()
-sense.clear()
 
+# Resets the lights on the Raspberry PI.
+SenseHat().clear()
