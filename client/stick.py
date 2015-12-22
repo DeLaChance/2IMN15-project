@@ -3,18 +3,18 @@ from __future__ import (
     absolute_import,
     print_function,
     division,
-    )
-native_str = str
-str = type('')
+)
 
+import errno
+import glob
 import io
 import os
-import glob
-import errno
-import struct
 import select
+import struct
 from collections import namedtuple
-from threading import Thread, Event
+
+native_str = str
+str = type('')
 
 
 InputEvent = namedtuple('InputEvent', ('timestamp', 'key', 'state'))
@@ -74,5 +74,3 @@ class SenseStick(object):
         # XXX Use poll() instead?
         r, w, x = select.select([self._stick_file], [], [], timeout)
         return bool(r)
-
-
