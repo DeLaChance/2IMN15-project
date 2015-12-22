@@ -5,10 +5,13 @@ import Model
 
 
 def main():
+    """
+    Initializes SensingActuating module and unit tests the model.
+    """
     try:
         Sanda.init()
         while True:
-            Model.make_reservation(10, 10)
+            Model.make_reservation(5, 10, 10)
             time.sleep(5)
 
     finally:
@@ -18,8 +21,11 @@ def main():
 
 
 def stop():
+    """
+    Stops the SensingActuating module
+    """
     Sanda.stop()
 
-
+# Calls the main function on run
 if __name__ == "__main__":
     main()

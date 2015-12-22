@@ -5,10 +5,16 @@ import thread
 import config
 import Model
 
+# Initialize SenseHat object
 sense = None
 
 
 def keep_sensing(thread_name, s_stick):
+    """
+    Loop that waits for input, i.e. stick movements that indicate a vehicle movement (enter/leave)
+    :param thread_name: name of thread
+    :param s_stick: SenseStick object
+    """
     print("Starting sensing thread " + thread_name)
 
     while True:
@@ -30,6 +36,11 @@ def keep_sensing(thread_name, s_stick):
 
 
 def keep_actuating(thread_name, sense_hat):
+    """
+    Listens for state changes and updates LED colors accordingly.
+    :param thread_name: name of thread
+    :param sense_hat: SenseHat object
+    """
     print("Starting actuating thread " + thread_name)
     old_state = None
 
@@ -59,9 +70,13 @@ def keep_actuating(thread_name, sense_hat):
 
 
 def init():
+    """
+    Initialize sensing and actuation of the system.
+    """
     global sense
     sense = SenseHat()
     sense.clear()
+    # FIXME: Id number is hardcoded.
     sense.show_message("ID=4")
     thread.start_new_thread(keep_actuating, ("Thread-2", sense))
     s_stick = SenseStick()
@@ -69,6 +84,9 @@ def init():
 
 
 def stop():
+    """
+    Reset the lights and turn off.
+    """
     global sense
     print("Turning off...")
     sense.clear()
