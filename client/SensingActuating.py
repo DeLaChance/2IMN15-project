@@ -1,6 +1,6 @@
 #!/usr/bin/python
 from sense_hat import SenseHat
-from stick import SenseStick
+from Stick import SenseStick
 import thread
 import config
 import Model
@@ -76,8 +76,7 @@ def init():
     global sense
     sense = SenseHat()
     sense.clear()
-    # FIXME: Id number is hardcoded.
-    sense.show_message("ID=4")
+    sense.show_message("ID=" + config.SPOT_ID)
     thread.start_new_thread(keep_actuating, ("Thread-2", sense))
     s_stick = SenseStick()
     thread.start_new_thread(keep_sensing, ("Thread-1", s_stick))
