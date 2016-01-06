@@ -44,9 +44,15 @@ class CustomRequestLayer(RequestLayer):
                 # Not Found
                 transaction.response.code = defines.Codes.NOT_FOUND.number
             else:
-                transaction.resource = resource
                 method = getattr(resource, method, None)
-                resource = method(request=transaction.request)
+                transaction.resource = method(request=transaction.request)
+
+                if resource.etag in transaction.request.etag:
+                    transaction.response.code = defines.Codes.VALID.number
+                else:
+                    transaction.response.code = defines.Codes.CONTENT.number
+
+                transaction.response.payload = resource.payload
 
         return transaction
 
