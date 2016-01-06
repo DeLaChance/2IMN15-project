@@ -7,9 +7,9 @@ class Reservation(BaseResource):
 
     def render_GET(self, request):
         # SQL query to retrieve parking spots
-        query = "SELECT * FROM parkingspots WHERE state = 'free'"
+        query = "SELECT * FROM reservations"
         if self.index is not None:
-            query += " AND parkingSpotId = {}".format(self.index)
+            query += " AND reservationId = {}".format(self.index)
 
         # Execute SQL
         rows = self._execute_SQL(query)
