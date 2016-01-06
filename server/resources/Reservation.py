@@ -11,14 +11,16 @@ class Reservation(BaseResource):
         # SQL query to retrieve reservations
         query = "SELECT * FROM reservations"
         if self.index is not None:
-            query += " AND reservationId = {}".format(self.index)
+            query += " WHERE reservationId = {}".format(self.index)
 
         # Execute SQL
         rows = self._execute_SQL(query)
-        print rows
 
         # Convert to JSON
-        self.payload = self._to_JSON(rows)
+        if len(rows) == 0:
+            self.payload = "[]"
+        else:
+            self.payload = self._to_JSON(rows, self.index is not None)
 
         return self
 
