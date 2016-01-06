@@ -18,9 +18,9 @@ class ParkingSpot(BaseResource):
 
         # Convert to JSON
         if len(rows) == 0:
-            self.payload = None
+            self.payload = "[]"
         else:
-            self.payload = self._to_JSON(rows)
+            self.payload = self._to_JSON(rows, self.index is not None)
 
         return self
 

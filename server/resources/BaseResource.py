@@ -27,9 +27,9 @@ class BaseResource(Resource):
 
         return rows
 
-    def _to_JSON(self, rows):
+    def _to_JSON(self, rows, simplifyArray = True):
         # Do not make a single object a 1 element array
-        if len(rows) == 1:
+        if len(rows) == 1 and simplifyArray:
             return json.dumps(rows)[1:-1]
 
         return json.dumps(rows)
