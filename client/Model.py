@@ -17,12 +17,11 @@ def set_state(new_state):
     global state
     global lock
 
-    lock.acquire()
-
     if new_state < config.FREE or new_state > config.RESERVED:
         print("invalid state: ", new_state)
         return False
 
+    lock.acquire()
     state = new_state
     lock.release()
 
