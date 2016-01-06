@@ -22,10 +22,11 @@ class CustomCoAP(CoAP):
         actual_path = ""
         i = 0
         for p in paths:
+            i += 1
+
             if p == "*":
                 continue
 
-            i += 1
             actual_path += "/" + p
             try:
                 res = self.root[actual_path]
