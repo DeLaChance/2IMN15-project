@@ -23,6 +23,7 @@ class BaseResource(Resource):
         cur.execute(query)
 
         rows = cur.fetchall()
+        conn.commit()
         conn.close()
 
         return rows
