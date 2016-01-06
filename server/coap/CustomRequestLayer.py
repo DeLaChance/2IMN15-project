@@ -11,17 +11,17 @@ class CustomRequestLayer(RequestLayer):
         for p in paths:
             actual_path += "/" + p
 
+            print actual_path
+
             try:
                 resource = self._server.root[actual_path]
                 resource.index = None
             except KeyError:
-                resource.index = p
-                continue
+                # Replace actual value with *
+                actual_path = "/".join(actual_path.split("/")[0:-1]) + "/*"
 
-        #try:
-        #    resource = self._server.root[path]
-        #except KeyError:
-        #    resource = None
+                # Save index such that it can be used within the resource
+                resource.index = p
 
         return resource
 

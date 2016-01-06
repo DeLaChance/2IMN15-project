@@ -1,14 +1,10 @@
-from coapthon.server.coap import CoAP
+from coap.CustomCoAP import CustomCoAP
 from resources.ParkingSpot import ParkingSpot
 from resources.Reservation import Reservation
-from CustomRequestLayer import CustomRequestLayer
 
-
-class CoAPServer(CoAP):
+class CoAPServer(CustomCoAP):
     def __init__(self, host, port):
-        CoAP.__init__(self, (host, port))
-        self._requestLayer = CustomRequestLayer(self)  # Override library layer to support RESTful URIs
-
+        CustomCoAP.__init__(self, (host, port))
         self.add_resource('parkingspots/', ParkingSpot())
         self.add_resource('parkingspots/*/reservations/', Reservation())
 
