@@ -6,7 +6,9 @@ class Reservation(BaseResource):
                                             observable=True, allow_children=True)
 
     def render_GET(self, request):
-        # SQL query to retrieve parking spots
+        parkingSpotId = request.options[1].value
+
+        # SQL query to retrieve reservations
         query = "SELECT * FROM reservations"
         if self.index is not None:
             query += " AND reservationId = {}".format(self.index)
