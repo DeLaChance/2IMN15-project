@@ -17,8 +17,8 @@ class CustomRequestLayer(RequestLayer):
                 resource = self._server.root[actual_path]
                 resource.index = None
             except KeyError:
-                # Replace actual value with *
-                actual_path = "/".join(actual_path.split("/")[0:-1]) + "/*"
+                # Remove dynamic parameter in URI
+                actual_path = "/".join(actual_path.split("/")[0:-1])
 
                 # Save index such that it can be used within the resource
                 resource.index = p
@@ -38,7 +38,7 @@ class CustomRequestLayer(RequestLayer):
         if path == defines.DISCOVERY_URL:
             transaction = self._server.resourceLayer.discover(transaction)
         else:
-            resource = self._find_resource(path)
+            resource = self._find_resource(path) # CUSTOM
 
             if resource is None or path == '/':
                 # Not Found
