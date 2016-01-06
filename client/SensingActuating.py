@@ -76,7 +76,7 @@ def init():
     global sense
     sense = SenseHat()
     sense.clear()
-    sense.show_message("ID=" + config.SPOT_ID)
+    sense.show_message("ID=" + str(config.SPOT_ID))
     thread.start_new_thread(keep_actuating, ("Thread-2", sense))
     s_stick = SenseStick()
     thread.start_new_thread(keep_sensing, ("Thread-1", s_stick))
