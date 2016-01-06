@@ -21,9 +21,11 @@ class CustomRequestLayer(RequestLayer):
                 # Save index such that it can be used within the resource
                 resource.index = p
 
+        resource.path = actual_path
+
         return resource
 
-    def _handle_get(self, transaction):
+    def _handle_request(self, transaction, method):
         """
         :type transaction: Transaction
         :param transaction:
@@ -43,8 +45,19 @@ class CustomRequestLayer(RequestLayer):
                 transaction.response.code = defines.Codes.NOT_FOUND.number
             else:
                 transaction.resource = resource
-                transaction = self._server.resourceLayer.get_resource(transaction)
+                method = getattr(resource, method, None)
+                resource = method(request=transaction.request)
+
         return transaction
+
+
+    def _handle_get(self, transaction):
+        """
+        :type transaction: Transaction
+        :param transaction:
+        :rtype : Transaction
+        """
+        self._handle_request(transaction, "render_GET")
 
     def _handle_put(self, transaction):
         """
@@ -53,36 +66,15 @@ class CustomRequestLayer(RequestLayer):
         :param transaction:
         :rtype : Transaction
         """
-        path = str("/" + transaction.request.uri_path)
-        transaction.response = Response()
-        transaction.response.destination = transaction.request.source
-        transaction.response.token = transaction.request.token
-
-        resource = self._find_resource(path) # CUSTOM
-
-        if resource is None:
-            transaction.response.code = defines.Codes.NOT_FOUND.number
-        else:
-            transaction.resource = resource
-            # Update request
-            transaction = self._server.resourceLayer.update_resource(transaction)
-        return transaction
+        self._handle_request(transaction, "render_PUT")
 
     def _handle_post(self, transaction):
         """
-
         :type transaction: Transaction
         :param transaction:
         :rtype : Transaction
         """
-        path = str("/" + transaction.request.uri_path)
-        transaction.response = Response()
-        transaction.response.destination = transaction.request.source
-        transaction.response.token = transaction.request.token
-
-        # Create request
-        transaction = self._server.resourceLayer.create_resource(path, transaction)
-        return transaction
+        self._handle_request(transaction, "render_POST")
 
     def _handle_delete(self, transaction):
         """
@@ -91,19 +83,4 @@ class CustomRequestLayer(RequestLayer):
         :param transaction:
         :rtype : Transaction
         """
-        path = str("/" + transaction.request.uri_path)
-        transaction.response = Response()
-        transaction.response.destination = transaction.request.source
-        transaction.response.token = transaction.request.token
-        try:
-            resource = self._server.root[path]
-        except KeyError:
-            resource = None
-
-        if resource is None:
-            transaction.response.code = defines.Codes.NOT_FOUND.number
-        else:
-            # Delete
-            transaction.resource = resource
-            transaction = self._server.resourceLayer.delete_resource(transaction, path)
-        return transaction
+        self._handle_request(transaction, "render_DELETE")
