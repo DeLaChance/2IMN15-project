@@ -11,8 +11,6 @@ class CustomRequestLayer(RequestLayer):
         for p in paths:
             actual_path += "/" + p
 
-            print actual_path
-
             try:
                 resource = self._server.root[actual_path]
                 resource.index = None
@@ -46,4 +44,66 @@ class CustomRequestLayer(RequestLayer):
             else:
                 transaction.resource = resource
                 transaction = self._server.resourceLayer.get_resource(transaction)
+        return transaction
+
+    def _handle_put(self, transaction):
+        """
+
+        :type transaction: Transaction
+        :param transaction:
+        :rtype : Transaction
+        """
+        path = str("/" + transaction.request.uri_path)
+        transaction.response = Response()
+        transaction.response.destination = transaction.request.source
+        transaction.response.token = transaction.request.token
+
+        resource = self._find_resource(path) # CUSTOM
+
+        if resource is None:
+            transaction.response.code = defines.Codes.NOT_FOUND.number
+        else:
+            transaction.resource = resource
+            # Update request
+            transaction = self._server.resourceLayer.update_resource(transaction)
+        return transaction
+
+    def _handle_post(self, transaction):
+        """
+
+        :type transaction: Transaction
+        :param transaction:
+        :rtype : Transaction
+        """
+        path = str("/" + transaction.request.uri_path)
+        transaction.response = Response()
+        transaction.response.destination = transaction.request.source
+        transaction.response.token = transaction.request.token
+
+        # Create request
+        transaction = self._server.resourceLayer.create_resource(path, transaction)
+        return transaction
+
+    def _handle_delete(self, transaction):
+        """
+
+        :type transaction: Transaction
+        :param transaction:
+        :rtype : Transaction
+        """
+        path = str("/" + transaction.request.uri_path)
+        transaction.response = Response()
+        transaction.response.destination = transaction.request.source
+        transaction.response.token = transaction.request.token
+        try:
+            resource = self._server.root[path]
+        except KeyError:
+            resource = None
+
+        if resource is None:
+            transaction.response.code = defines.Codes.NOT_FOUND.number
+        else:
+            # Delete
+            transaction.resource = resource
+            transaction = self._server.resourceLayer.delete_resource(transaction, path)
         return transaction
