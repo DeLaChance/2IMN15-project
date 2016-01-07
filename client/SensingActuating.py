@@ -108,6 +108,7 @@ def keepUpdatingDisplay(thread_name, sense):
                 color = (255, 165, 0)
 
             if state == "red":
+                print("I got here!")
                 color = (255, 0, 0)
 
             i = 0
