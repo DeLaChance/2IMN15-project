@@ -52,7 +52,10 @@ class CustomRequestLayer(RequestLayer):
                 else:
                     transaction.response.code = defines.Codes.CONTENT.number
 
-                transaction.response.payload = resource.payload
+                try:
+                    transaction.response.payload = resource.payload
+                except:
+                    pass
 
         return transaction
 
