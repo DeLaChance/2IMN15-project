@@ -71,6 +71,7 @@ def sendServerIPtoParkingSpot(thread_name, ip, ownIP):
         except Exception:
             time.sleep(2)
             i += 1
+            print("sendServerIPtoParkingSpot retry i=" + str(i) +"! threadname=" + thread_name + " ,ip=" + ip)
 
 
 def init(p_ownIP):
