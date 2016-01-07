@@ -22,7 +22,10 @@ def getState():
     f1 = open(lockfileuri, 'w')
     f2 = open(displayfileuri, 'r+')
 
-    s = f2.read();
+    f1.write("a")
+    s = f2.read()
+    f1.close()
+    f2.close()
 
     # delete lock file
     os.remove(lockfileuri)
@@ -41,8 +44,11 @@ def setState(s):
     f1 = open(lockfileuri, 'w')
     f2 = open(displayfileuri, 'w')
 
-    f2.write(s);
+    f1.write("a")
+    f2.write(s)
 
+    f1.close()
+    f2.close()
     # delete lock file
     os.remove(lockfileuri)
 
@@ -58,14 +64,17 @@ def setJoyStickState(s):
     f1 = open(lockfileuri, 'w')
     f2 = open(jsfileuri, 'w')
 
+    f1.write("a")
     f2.write(s)
+
+    f1.close()
+    f2.close()
 
     # delete lock file
     os.remove(lockfileuri)
 
 def keepSensingJoyStick(thread_name, s_stick):
 
-    i = 0;
     print("Starting joystick thread " + thread_name + "\n")
 
     while True:
@@ -74,19 +83,15 @@ def keepSensingJoyStick(thread_name, s_stick):
         event = s_stick.read()
         key = event.key
 
-        state = getState()
-        if( i > 10000 ):
-            print("keepSensingJoyStick: key=" + str(key) + ",state=" + str(state) + "\n")
-            i = 0;
-        i += 1;
-
-        if key == config.UP and state == config.RESERVED:
+        if key == config.UP:
             #enter vehicle
-            setJoyStickState(config.UP)
+            print("joystick is up")
+            setJoyStickState(str(config.UP))
 
-        if key == config.DOWN and state == config.OCCUPIED:
+        if key == config.DOWN:
             #leave vehicle
-            setJoyStickState(config.DOWN)
+            print("joystick is down")
+            setJoyStickState(str(config.DOWN))
 
     print("Stopping joystick thread " + thread_name + "\n")
 
@@ -108,7 +113,6 @@ def keepUpdatingDisplay(thread_name, sense):
                 color = (255, 165, 0)
 
             if state == "red":
-                print("I got here!")
                 color = (255, 0, 0)
 
             i = 0
