@@ -62,16 +62,26 @@ class Reservation(BaseResource):
         return True
 
     def render_DELETE(self, request):
-        data = json.loads(request.payload)
-        state = "free"
-        fromm = data["from"]
-        to = data["to"]
-        query = "DELETE FROM reservations WHERE reservationId = {}".format(self.index)
-        query += " AND parkingSpotId = {}".format(data["parkingSpotId"])
-        current_time = time.time()
-        if fromm < current_time < to:
-            query += "; UPDATE parkingspots SET state = {}".format(state)
-            query += " WHERE parkingSpotId = {}".format(data["parkingSpotId"])
-            query += ";"
-        print self._execute_SQL(query)
+        parkingSpotId = request.options[1].value
+        free = "free"
+        query1 = "SELECT * FROM reservations WHERE reservationId = {}".format(self.index)
+        query1 += " AND parkingSpotId = {}".format(parkingSpotId)
+        rows = self._execute_SQL(query1)
+        query2 = ""
+        if len(rows) != 0:
+            for row in rows:
+                fromm = row["from"]
+                to = row["to"]
+                current_time = time.time()
+                print current_time
+                if fromm < current_time < to:
+                    query2 += "UPDATE parkingspots SET state = '{}".format(free)
+                    query2 += "' WHERE parkingSpotId = {}".format(parkingSpotId)
+                    query2 += ";"
+                    print self._execute_SQL(query2)
+                    # TODO: automatic billing
+                    print "QUERY2: " + query2
+        query3 = " DELETE FROM reservations WHERE reservationId = {}".format(self.index)
+        query3 += " AND parkingSpotId = {}".format(parkingSpotId)
+        print self._execute_SQL(query3)
         return self
