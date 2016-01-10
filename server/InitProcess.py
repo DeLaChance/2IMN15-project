@@ -9,7 +9,7 @@ def main():
     print("Starting initProcess...")
     SpotFinderThread.init(sys.argv[1])
     while( True ):
-        time.sleep(1);
+        time.sleep(1)
 
 if __name__ == '__main__':
     main()

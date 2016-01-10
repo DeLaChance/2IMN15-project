@@ -5,8 +5,9 @@ import re
 from subprocess import Popen, PIPE
 import socket
 import sys
+import ParkingSpot
 
-ips = []
+ps = [] # list of parking spots
 re_ip = None
 ownIP = ""
 
@@ -21,23 +22,31 @@ def runShellCommand(cmd):
 def isValidIpv4(s):
     return re_ip.match(s);
 
-def getIPs():
+def getParkingSpots():
     global lock
     lock.acquire()
-    ips2 = list(ips)
+    ps2 = list(ps)
     lock.release()
-    return ips2
+    return ps2
+
+def findParkingSpotByIp(ip):
+    global lock
+    retVal = None
+    lock.acquire()
+    for spot in ps:
+        ip2 =spot.getIP()
+        if ip2 == ip:
+            retVal = spot
+            break
+    lock.release()
+    return retVal
 
 def getOwnIP():
     return ownIP
-    #import urllib2
-    #ret = urllib2.urlopen('https://enabledns.com/ip')
-    #return ret.read()
 
-def keepAvahiBrowsing(thread_name, ips):
+def keepAvahiBrowsing(thread_name, ps):
     print("start keepAvahiBrowsing: threadname=" + thread_name)
     while( True ):
-        lock.acquire()
         #ips = [] # Only keep active IPs
         (output, err) = runShellCommand("avahi-browse -rtp _coap._udp")
         if( (err == None or len(err) > 0) or (output == None or len(output) == 0) ):
@@ -49,13 +58,16 @@ def keepAvahiBrowsing(thread_name, ips):
                 arr = line.split(";")
                 if( len(arr) >= 8 ):
                     ip = arr[7]
-                    if( isValidIpv4(ip) and ips.count(ip) == 0 ):
+                    if( isValidIpv4(ip) and findParkingSpotByIp(ip) == None ):
                         print("SpotFinderThread: client-ip found ip=" + ip)
                         thread.start_new_thread(sendServerIPtoParkingSpot, ("sendServerIPtoParkingSpot", ip, getOwnIP()))
-                        ips.append(ip)
-        lock.release()
+                        parkingSpot = ParkingSpot.ParkingSpot(ip)
+                        
+                        lock.acquire()
+                        ps.append(parkingSpot)
+                        lock.release()
 
-        time.sleep(10)
+        time.sleep(3)
 
 def sendServerIPtoParkingSpot(thread_name, ip, ownIP):
     # sends the server IP to the parking spot s.t. it can start lwm2mclient
@@ -76,10 +88,11 @@ def sendServerIPtoParkingSpot(thread_name, ip, ownIP):
 
 def init(p_ownIP):
     global ips
+    global ps
     global re_ip
     global ownIP
 
     ownIP = p_ownIP
     re_ip = re.compile('\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
-    ips = [];
-    thread.start_new_thread(keepAvahiBrowsing, ("SpotFinderThread", ips))
+    ps = []
+    thread.start_new_thread(keepAvahiBrowsing, ("SpotFinderThread", ps))
