@@ -4,6 +4,8 @@ import getopt
 import random
 import sys
 from unicurses import *
+import time
+from termios import tcflush, TCIOFLUSH
 import threading
 from coapthon import defines
 from coapthon.client.coap import CoAP
@@ -47,7 +49,7 @@ def printMenu(choices):
     n_choices = len(choices)
 
     WIDTH = 30
-    HEIGHT = n_choices+4
+    HEIGHT = n_choices+4+5
     startx = 0
     starty = 0
 
@@ -69,6 +71,17 @@ def printMenu(choices):
             y += 1
         wrefresh(menu_win)
 
+    def report_choice(mouse_x, mouse_y):
+        i = startx + 2
+        j = starty + 3
+        for choice in range(0, n_choices):
+            if (mouse_y == j + choice) and (mouse_x >= i) and (mouse_x <= i + len(choices[choice])):
+                if choice == n_choices - 1:
+                    return -1
+                else:
+                    return choice + 1
+                break
+
     stdscr = initscr()
     clear()
     noecho()
@@ -82,27 +95,48 @@ def printMenu(choices):
     mvaddstr(0, 0, "Use arrow keys to go up and down, press ENTER to select a choice")
     refresh()
     print_menu(menu_win, highlight)
+    mouseinterval(0)
+    mousemask(ALL_MOUSE_EVENTS)
 
     while True:
         c = wgetch(menu_win)
         if c == KEY_UP:
             if highlight == 1:
-                highlight == n_choices
+                highlight == 1
             else:
                 highlight -= 1
         elif c == KEY_DOWN:
             if highlight == n_choices:
-                highlight = 1
+                highlight = n_choices
             else:
                 highlight += 1
         elif c == 10:   # ENTER is pressed
             choice = highlight
             break
+        elif c == KEY_MOUSE:
+            id, x, y, z, bstate = getmouse()
+            if bstate & BUTTON1_PRESSED:
+                chosen = report_choice(x + 1, y + 1)
+                if chosen != None:
+                    highlight = chosen
+                    choice = highlight
+                    print_menu(menu_win, highlight)
+                    time.sleep(0.5)
+                    break
+                clrtoeol()
+                refresh()
+                if (chosen == -1):
+                    refresh()
+                    endwin()
+                    client.stop()
+                    sys.exit(2)
+                print_menu(menu_win, chosen)
 
         print_menu(menu_win, highlight)
-        if choice == 5:
-            break
 
+    # flush stdin and out, because mouse event leaks into it
+    sys.stdout.flush()
+    tcflush(sys.stdin, TCIOFLUSH)
     refresh()
     endwin()
 
