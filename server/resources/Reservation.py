@@ -30,9 +30,9 @@ class Reservation(BaseResource):
 
         return self
 
-    def render_PUT(self, request):
-        self.payload = request.payload
-        return self
+    # NOT implemented yet!
+    # def render_PUT(self, request):
+    #     return self
 
     def render_POST(self, request):
         parkingSpotId = request.options[1].value

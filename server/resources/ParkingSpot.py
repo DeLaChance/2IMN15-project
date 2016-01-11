@@ -44,14 +44,3 @@ class ParkingSpot(BaseResource):
             self.payload = self._to_JSON(rows, self.index is not None)
 
         return self
-
-    def render_PUT(self, request):
-        self.payload = request.payload
-        return self
-
-    def render_POST(self, request):
-        print "PARKINGSPOT payload: " + request.payload
-        return self
-
-    def render_DELETE(self, request):
-        return True
