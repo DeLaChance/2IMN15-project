@@ -1,4 +1,5 @@
 from BaseResource import BaseResource
+import json
 
 class ParkingSpot(BaseResource):
     def __init__(self, name="ParkingSpot", coap_server=None):
@@ -16,12 +17,22 @@ class ParkingSpot(BaseResource):
         # Ensure all parkingspot states are correct
         self._update_parking_spots(self.index)
 
+        payload = json.loads(request.payload)
+        fromm = payload["from"]
+        to = payload["to"]
+
         # SQL query to retrieve parking spots
-        query = "SELECT * FROM parkingspots"
         if self.index is not None:
-            query += " WHERE parkingSpotId = {}".format(self.index)
+            query = "SELECT * FROM parkingspots as p"
+            query += " WHERE p.parkingSpotId = {}".format(self.index)
         else:
-            query += " WHERE state = 'free'"
+            query = "SELECT parkingSpotId, 'free' as state, price FROM parkingspots "
+            query += " WHERE parkingSpotId NOT IN"
+            query += " (SELECT p.parkingSpotId FROM parkingspots as p"
+            query += " INNER JOIN reservations as r"
+            query += " ON r.parkingSpotId = p.parkingSpotId"
+            query += " WHERE  r.'from' < {}".format(to)
+            query += " OR r.'to' > {})".format(fromm)
 
         # Execute SQL
         rows = self._execute_SQL(query)

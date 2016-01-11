@@ -1,21 +1,10 @@
 #!/usr/bin/env python
-from Queue import Queue
-import getopt
-import random
-import sys
 from unicurses import *
 import time
 from termios import tcflush, TCIOFLUSH
-import threading
-from coapthon import defines
-from coapthon.client.coap import CoAP
-from coapthon.client.helperclient import HelperClient
-from coapthon.messages.message import Message
-from coapthon.messages.request import Request
-from coapthon.utils import parse_uri
+from server.coap.CustomClient import CustomClient
 import logging
 import json
-# from picker import *
 
 vehicleId = 1
 
@@ -26,13 +15,18 @@ for name, logger in logging.Logger.manager.loggerDict.iteritems():
 client = None
 
 def chooseParkingSpot():
-    #ASK FOR FROM AND TO TIME!!!
-    fromm = 1234
-    to = 1235
+    print "Enter from and to what time you wish to reserve a spot (MM-DD HH:mm):"
+    try:
+        fromm = int(time.mktime(time.strptime("2015-"+raw_input("From: "), "%Y-%m-%d %H:%M:%S")))
+        to = int(time.mktime(time.strptime("2015-"+raw_input("To:   "), "%Y-%m-%d %H:%M:%S")))
+    except:
+        print "ERROR: Date was of the wrong format"
+        client.stop()
+        sys.exit(2)
 
-    spots = json.loads(client.get("/parkingspots").payload)
+    spots = json.loads(client.get("/parkingspots", '{{"from": {}, "to": {}}}'.format(fromm, to)).payload)
     choice = printMenu(map((lambda x : "Parking spot " + str(x["parkingSpotId"])), spots))
-    print choice
+    print "Parking spot: " + choice
 
     # POST reservation, kijk of het gelukt is
     response = client.post(
@@ -49,7 +43,7 @@ def printMenu(choices):
     n_choices = len(choices)
 
     WIDTH = 30
-    HEIGHT = n_choices+4+5
+    HEIGHT = n_choices+4
     startx = 0
     starty = 0
 
@@ -148,7 +142,7 @@ def printMenu(choices):
 
 def main():  # pragma: no cover
     global client
-    client = HelperClient(server=("127.0.0.1", 5683))
+    client = CustomClient(server=("127.0.0.1", 5683))
 
     try:
         chooseParkingSpot()
