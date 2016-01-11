@@ -57,11 +57,16 @@ class Reservation(BaseResource):
     def schedule_script(self, action, id, time):
         """
         Calls the shell script to schedule task at time :time
+        Usage example: schedule_script("remove", "2", int(time.time()))
         """
-        datetime.datetime.fromtimestamp(
+
+        # format to [[CC]YY]MMDDhhmm[.ss]
+        formattedTime = datetime.datetime.fromtimestamp(
             int(time)
-        ).strftime('%H:%M')
-        subprocess.call(["../schedule_script.sh", action, id, time])
+        ).strftime('%Y%m%d%H%M.%S')
+
+        # call process, make sure the script is executable (chmod +x)
+        subprocess.call(["./schedule_script.sh", action, id, formattedTime])
 
     def _fromto_is_ok(self, parkingspotId, fromm, to):
         query = "SELECT * FROM reservations WHERE parkingSpotId = {}".format(parkingspotId)

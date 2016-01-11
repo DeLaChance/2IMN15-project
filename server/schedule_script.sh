@@ -1,1 +1,2 @@
-echo "python reserveParkingSpot.py $1 $2" | at $3
+#!/bin/sh
+echo "python reserveParkingSpot.py $1 $2" | at -t $3

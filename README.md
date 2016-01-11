@@ -1,5 +1,10 @@
 # 2IMN15-project
 
+Instructions
+------------
+- Make sure you have `at` installed
+- Make schedule script executable: `chmod +x server/schedule_script.sh`
+
 Practical Description
 ---------------------
 Description: http://www.win.tue.nl/~johanl/educ/2IMN15/PracticalDescription-2IMN15.htm
