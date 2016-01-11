@@ -23,62 +23,93 @@ for name, logger in logging.Logger.manager.loggerDict.iteritems():
 
 client = None
 
-def spotname(parkingspot):
-    return "Parking spot " + parkingspot["parkingSpotId"]
-
 def chooseParkingSpot():
-    print "The following parking spots are available at the moment: "
-    # spots = json.loads(string)
+    #ASK FOR FROM AND TO TIME!!!
+    fromm = 1234
+    to = 1235
+
     spots = json.loads(client.get("/parkingspots").payload)
-    for spot in spots:
-        print "[parking spot] id: " + str(spot["parkingSpotId"]) + ", price: " + str(spot["price"])
-    print "Choose your parking spot by typing its Id"
-    print "if you want to reload the available parking spots, press r"
-    print "if you want to make a reservation for a spot, continue by pressing m"
-    # print "if you want to delete a reservation, continue by pressing d"
-    print "if you want to view the reservations from one parking spot, continue by pressing v"
-    check = True
-    while check:
-        chosen = raw_input()
-        if chosen == "r":
-            chooseParkingSpot()
-        elif chosen == "m":
-            makeReservation()
-        elif chosen == "d":
-            viewReservations()
-        else:
-            print "Unrecognized choice."
-            continue
-        check = False
-        break
-    client.close()
-    sys.exit(2)
+    choice = printMenu(map((lambda x : "Parking spot " + str(x["parkingSpotId"])), spots))
+    print choice
 
-def makeReservation():
-    print "Choose which parking spot you want to reserve by pressing its id"
+    # POST reservation, kijk of het gelukt is
+    response = client.post(
+        "/parkingspots/"+choice+"/reservations",
+        '{{"vehicleId": {}, "from": {}, "to": {}}}'.format(vehicleId, fromm, to)
+    )
+    print response.payload
 
-def viewReservations():
-    print "Choose which parking spot you want to view the reservations from"
-    parkingspot = raw_input()
-    reservations = json.loads(client.get("/parkingspots/" + parkingspot + "/reservations"))
-    print "All reservations:"
-    print reservations
+    client.stop()
+    sys.exit(0)
 
-def chooseParkingSpot2():
-    spots = client.get("/parkingspots").payload
-    opts = Picker(
-        title = 'Choose your parking spot',
-        options = map(spotname, spots)
-    ).getSelected()
+def printMenu(choices):
+    choices.append("Exit")
+    n_choices = len(choices)
 
-    if opts == False:
-        print "Aborted!"
-    else:
-        print opts
-    # for spot in spots
-    # print spot + "/"
-    client.close()
-    sys.exit(2)
+    WIDTH = 30
+    HEIGHT = n_choices+4
+    startx = 0
+    starty = 0
+
+    highlight = 1
+    choice = 0
+    c = 0
+
+    def print_menu(menu_win, highlight):
+        x = 2
+        y = 2
+        box(menu_win, 0, 0)
+        for i in range(0, n_choices):
+            if (highlight == i + 1):
+                wattron(menu_win, A_REVERSE)
+                mvwaddstr(menu_win, y, x, choices[i])
+                wattroff(menu_win, A_REVERSE)
+            else:
+                mvwaddstr(menu_win, y, x, choices[i])
+            y += 1
+        wrefresh(menu_win)
+
+    stdscr = initscr()
+    clear()
+    noecho()
+    cbreak()
+    curs_set(0)
+    startx = int((80 - WIDTH) / 2)
+    starty = int((24 - HEIGHT) / 2)
+
+    menu_win = newwin(HEIGHT, WIDTH, starty, startx)
+    keypad(menu_win, True)
+    mvaddstr(0, 0, "Use arrow keys to go up and down, press ENTER to select a choice")
+    refresh()
+    print_menu(menu_win, highlight)
+
+    while True:
+        c = wgetch(menu_win)
+        if c == KEY_UP:
+            if highlight == 1:
+                highlight == n_choices
+            else:
+                highlight -= 1
+        elif c == KEY_DOWN:
+            if highlight == n_choices:
+                highlight = 1
+            else:
+                highlight += 1
+        elif c == 10:   # ENTER is pressed
+            choice = highlight
+            break
+
+        print_menu(menu_win, highlight)
+        if choice == 5:
+            break
+
+    refresh()
+    endwin()
+
+    if choice == len(choices):
+        sys.exit(0)
+
+    return choices[choice-1].replace("Parking spot ", "")
 
 def main():  # pragma: no cover
     global client
