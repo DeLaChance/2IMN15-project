@@ -11,6 +11,8 @@ from coapthon.messages.message import Message
 from coapthon.messages.request import Request
 from coapthon.utils import parse_uri
 import logging
+import json
+# from picker import *
 
 #disable all logging
 for name, logger in logging.Logger.manager.loggerDict.iteritems():
@@ -18,149 +20,72 @@ for name, logger in logging.Logger.manager.loggerDict.iteritems():
 
 client = None
 
+def spotname(parkingspot):
+    return "Parking spot " + parkingspot["parkingSpotId"]
 
-def usage():  # pragma: no cover
-    print "Command:\tcoapclient.py -o -p [-P]"
-    print "Options:"
-    print "\t-o, --operation=\tGET|PUT|POST|DELETE|DISCOVER|OBSERVE"
-    print "\t-p, --path=\t\t\tPath of the request"
-    print "\t-P, --payload=\t\tPayload of the request"
-    print "\t-f, --payload-file=\t\tFile with payload of the request"
-
-
-def client_callback(response):
-    print "Callback"
-
-
-def client_callback_observe(response):  # pragma: no cover
-    global client
-    print "Callback_observe"
+def chooseParkingSpot():
+    print "The following parking spots are available at the moment: "
+    # spots = json.loads(string)
+    spots = json.loads(client.get("/parkingspots").payload)
+    for spot in spots:
+        print "[parking spot] id: " + str(spot["parkingSpotId"]) + ", price: " + str(spot["price"])
+    print "Choose your parking spot by typing its Id"
+    print "if you want to reload the available parking spots, press r"
+    print "if you want to make a reservation for a spot, continue by pressing m"
+    # print "if you want to delete a reservation, continue by pressing d"
+    print "if you want to view the reservations from one parking spot, continue by pressing v"
     check = True
     while check:
-        chosen = raw_input("Stop observing? [y/N]: ")
-        if chosen != "" and not (chosen == "n" or chosen == "N" or chosen == "y" or chosen == "Y"):
-            print "Unrecognized choose."
-            continue
-        elif chosen == "y" or chosen == "Y":
-            while True:
-                rst = raw_input("Send RST message? [Y/n]: ")
-                if rst != "" and not (rst == "n" or rst == "N" or rst == "y" or rst == "Y"):
-                    print "Unrecognized choose."
-                    continue
-                elif rst == "" or rst == "y" or rst == "Y":
-                    client.cancel_observing(response, True)
-                else:
-                    client.cancel_observing(response, False)
-                check = False
-                break
+        chosen = raw_input()
+        if chosen == "r":
+            chooseParkingSpot()
+        elif chosen == "m":
+            makeReservation()
+        elif chosen == "d":
+            viewReservations()
         else:
-            break
+            print "Unrecognized choice."
+            continue
+        check = False
+        break
+    client.close()
+    sys.exit(2)
 
+def makeReservation():
+    print "Choose which parking spot you want to reserve by pressing its id"
+
+def viewReservations():
+    print "Choose which parking spot you want to view the reservations from"
+    parkingspot = raw_input()
+    reservations = json.loads(client.get("/parkingspots/" + parkingspot + "/reservations"))
+    print "All reservations:"
+    print reservations
+
+def chooseParkingSpot2():
+    spots = client.get("/parkingspots").payload
+    opts = Picker(
+        title = 'Choose your parking spot',
+        options = map(spotname, spots)
+    ).getSelected()
+
+    if opts == False:
+        print "Aborted!"
+    else:
+        print opts
+    # for spot in spots
+    # print spot + "/"
+    client.close()
+    sys.exit(2)
 
 def main():  # pragma: no cover
     global client
-    op = None
-    path = None
-    payload = None
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "ho:p:P:f:", ["help", "operation=", "path=", "payload=",
-                                                               "payload_file="])
-    except getopt.GetoptError as err:
-        # print help information and exit:
-        print str(err)  # will print something like "option -a not recognized"
-        usage()
-        sys.exit(2)
-    for o, a in opts:
-        if o in ("-o", "--operation"):
-            op = a
-        elif o in ("-p", "--path"):
-            path = a
-        elif o in ("-P", "--payload"):
-            payload = a
-        elif o in ("-f", "--payload-file"):
-            with open(a, 'r') as f:
-                payload = f.read()
-        elif o in ("-h", "--help"):
-            usage()
-            sys.exit()
-        else:
-            usage()
-            sys.exit(2)
+    client = HelperClient(server=("127.0.0.1", 5683))
+    chooseParkingSpot()
 
-    if op is None:
-        print "Operation must be specified"
-        usage()
-        sys.exit(2)
-
-    if path is None:
-        print "Path must be specified"
-        usage()
-        sys.exit(2)
-
-    if not path.startswith("coap://"):
-        print "Path must be conform to coap://host[:port]/path"
-        usage()
-        sys.exit(2)
-
-    host, port, path = parse_uri(path)
-    client = HelperClient(server=(host, port))
-
-    if op == "GET":
-        if path is None:
-            print "Path cannot be empty for a GET request"
-            usage()
-            sys.exit(2)
-        response = client.get(path)
-        print response.payload
-        client.stop()
-    elif op == "OBSERVE":
-        if path is None:
-            print "Path cannot be empty for a GET request"
-            usage()
-            sys.exit(2)
-        client.observe(path, client_callback_observe)
-
-    elif op == "DELETE":
-        if path is None:
-            print "Path cannot be empty for a DELETE request"
-            usage()
-            sys.exit(2)
-        response = client.delete(path)
-        print response.pretty_print()
-        client.stop()
-    elif op == "POST":
-        if path is None:
-            print "Path cannot be empty for a POST request"
-            usage()
-            sys.exit(2)
-        if payload is None:
-            print "Payload cannot be empty for a POST request"
-            usage()
-            sys.exit(2)
-        response = client.post(path, payload)
-        print response.pretty_print()
-        client.stop()
-    elif op == "PUT":
-        if path is None:
-            print "Path cannot be empty for a PUT request"
-            usage()
-            sys.exit(2)
-        if payload is None:
-            print "Payload cannot be empty for a PUT request"
-            usage()
-            sys.exit(2)
-        response = client.put(path, payload)
-        print response.pretty_print()
-        client.stop()
-    elif op == "DISCOVER":
-        response = client.discover()
-        print response.pretty_print()
-        client.stop()
-    else:
-        print "Operation not recognized"
-        usage()
-        sys.exit(2)
-
+    # response = client.post(path, payload)
+    #
+    # response = client.delete(path)
+    sys.exit(2)
 
 if __name__ == '__main__':  # pragma: no cover
     main()
