@@ -18,6 +18,10 @@
 
 package org.eclipse.leshan.client.example;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -60,8 +64,8 @@ public class LeshanClientExample {
 
     public static void main(final String[] args) {
         if (args.length != 4 && args.length != 2) {
-            System.out
-                    .println("Usage:\njava -jar target/leshan-client-example-*-SNAPSHOT-jar-with-dependencies.jar [ClientIP] [ClientPort] ServerIP ServerPort");
+            System.out.println(
+                    "Usage:\njava -jar target/leshan-client-example-*-SNAPSHOT-jar-with-dependencies.jar [ClientIP] [ClientPort] ServerIP ServerPort");
         } else {
             if (args.length == 4)
                 new LeshanClientExample(args[0], Integer.parseInt(args[1]), args[2], Integer.parseInt(args[3]));
@@ -76,8 +80,15 @@ public class LeshanClientExample {
         // Initialize object list
         ObjectsInitializer initializer = new ObjectsInitializer();
 
-        initializer.setClassForObject(3, Device.class);
+        initializer.setClassForObject(32700, RaspberryDevice.class);
+        initializer.setClassForObject(3341, RaspberryTextBoard.class);
+        initializer.setClassForObject(3345, RaspberryJoystick.class);
+
         initializer.setInstancesForObject(6, locationInstance);
+        initializer.setInstancesForObject(32700, new RaspberryDevice());
+        initializer.setInstancesForObject(3341, new RaspberryTextBoard());
+        initializer.setInstancesForObject(3345, new RaspberryJoystick());
+
         List<ObjectEnabler> enablers = initializer.createMandatory();
         enablers.add(initializer.create(6));
 
@@ -85,8 +96,8 @@ public class LeshanClientExample {
         final InetSocketAddress clientAddress = new InetSocketAddress(localHostName, localPort);
         final InetSocketAddress serverAddress = new InetSocketAddress(serverHostName, serverPort);
 
-        final LeshanClient client = new LeshanClient(clientAddress, serverAddress, new ArrayList<LwM2mObjectEnabler>(
-                enablers));
+        final LeshanClient client = new LeshanClient(clientAddress, serverAddress,
+                new ArrayList<LwM2mObjectEnabler>(enablers));
 
         // Start the client
         client.start();
@@ -103,8 +114,8 @@ public class LeshanClientExample {
         if (response.getCode() != ResponseCode.CREATED) {
             // TODO Should we have a error message on response ?
             // System.err.println("\tDevice Registration Error: " + response.getErrorMessage());
-            System.err
-                    .println("If you're having issues connecting to the LWM2M endpoint, try using the DTLS port instead");
+            System.err.println(
+                    "If you're having issues connecting to the LWM2M endpoint, try using the DTLS port instead");
             return;
         }
 
@@ -332,6 +343,281 @@ public class LeshanClientExample {
 
         public Date getTimestamp() {
             return timestamp;
+        }
+    }
+
+    public static class RaspberryTextBoard extends BaseInstanceEnabler {
+        private String text = "";
+        public final String HOME_DIR = "/home/pi/events/";
+
+        public RaspberryTextBoard() {
+            this.setText("green");
+        }
+
+        @Override
+        public ReadResponse read(int resourceid) {
+            System.out.println("Read on RaspberryTextBoard Resource " + resourceid);
+            switch (resourceid) {
+            /*
+             * case 0: return ReadResponse.success(resourceid, getManufacturer());
+             */
+            case 5527:
+                return ReadResponse.success(resourceid, text);
+            default:
+                return super.read(resourceid);
+            }
+        }
+
+        @Override
+        public ExecuteResponse execute(int resourceid, String params) {
+            System.out.println("Execute on raspberrytextboard resource " + resourceid);
+            if (params != null && params.length() != 0)
+                System.out.println("\t params " + params);
+            return ExecuteResponse.success();
+        }
+
+        @Override
+        public WriteResponse write(int resourceid, LwM2mResource value) {
+            System.out.println("Write on raspberrytextboard Resource " + resourceid + " value " + value);
+            switch (resourceid) {
+            /*
+             * case 13: return WriteResponse.notFound(); case 14: setUtcOffset((String) value.getValue());
+             * fireResourcesChange(resourceid); return WriteResponse.success();
+             */
+            case 5527:
+                setText((String) value.getValue());
+                return WriteResponse.success();
+            default:
+                return super.write(resourceid, value);
+            }
+        }
+
+        public void setText(String s) {
+            if (!(s.equals("green") || s.equals("red") || s.equals("orange"))) {
+                System.out.println("setText failed s=" + s);
+            }
+
+            if (!s.equals(text)) {
+                // write to text file s.t. python updates led
+                this.text = s;
+                try {
+                    writeToEventFile();
+                } catch (Exception ex) {
+                    System.out.println("exception: " + ex.toString());
+                }
+            }
+        }
+
+        public void writeToEventFile() throws Exception {
+            // write to an event file s.t. the python display thread updates led
+            String lockUri = HOME_DIR + "displaylock.txt";
+            String fileUri = HOME_DIR + "display.txt";
+
+            // waits for lock to abide
+            File f = new File(lockUri);
+            while (f.exists()) {
+                Thread.sleep(100);
+            }
+
+            // creates lock
+            PrintWriter writer = new PrintWriter(lockUri, "UTF-8");
+            writer.println("a");
+            writer.close();
+            System.out.println("Java: display entering critical section");
+            PrintWriter writer2 = new PrintWriter(fileUri, "UTF-8");
+            writer2.print(this.text);
+            writer2.close();
+
+            // removes lock
+            f = new File(lockUri);
+            if (f.delete() == false) {
+                System.out.println("writeToEventFile deletion failed of lock file");
+            }
+            System.out.println("Java: display leaving critical section");
+        }
+
+    }
+
+    public static class RaspberryJoystick extends BaseInstanceEnabler {
+        int joystickState = 0;
+        public final String HOME_DIR = "/home/pi/events/";
+
+        public RaspberryJoystick() {
+            // notify server if joystick has been pushed
+            Timer timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    A();
+                }
+            }, 100, 100);
+        }
+
+        public void A() {
+            try {
+                String lockUri = HOME_DIR + "jslock.txt";
+                String fileUri = HOME_DIR + "js.txt";
+
+                // waits for lock to abide
+                File f = new File(lockUri);
+                File f2 = new File(fileUri);
+
+                while (f.exists()) {
+                    Thread.sleep(100);
+                }
+
+                if (!f2.exists()) {
+                    return;
+                }
+
+                System.out.println("Java: entering critical seciton joystick");
+
+                PrintWriter writer = new PrintWriter(lockUri, "UTF-8");
+                writer.println("a");
+                writer.close();
+                BufferedReader br = new BufferedReader(new FileReader(fileUri));
+                StringBuilder sb = new StringBuilder();
+                String line = br.readLine();
+
+                while (line != null) {
+                    sb.append(line);
+                    sb.append(System.lineSeparator());
+                    line = br.readLine();
+                }
+
+                String s = sb.toString();
+                System.out.println(s);
+
+                if (s.startsWith("103")) {
+                    // joystick has been pushed up, i.e. vehicle entered
+                    joystickState = 100;
+                    System.out.println("joystick has been pushed up");
+                    this.fireResourcesChange(5703);
+                }
+
+                if (s.startsWith("108")) {
+                    // joystick has been pushed down, i.e. vehicle left
+                    joystickState = -100;
+                    System.out.println("joystick has been pushed down");
+                    this.fireResourcesChange(5703);
+                }
+
+                br.close();
+
+                // removes lock
+                f = new File(lockUri);
+                f2 = new File(fileUri);
+                if (f.delete() == false || f2.delete() == false) {
+                    System.out.println("joyStickListenerThread deletion failed of lock or js file");
+                }
+
+                System.out.println("Java: leaving critical seciton joystick");
+
+            } catch (Exception ex) {
+
+            }
+        }
+
+        @Override
+        public ReadResponse read(int resourceid) {
+            System.out.println("Read on RaspberryTextBoard Resource " + resourceid);
+            switch (resourceid) {
+            case 5703:
+                return ReadResponse.success(resourceid, joystickState);
+            default:
+                return super.read(resourceid);
+            }
+        }
+
+        @Override
+        public ExecuteResponse execute(int resourceid, String params) {
+            System.out.println("Execute on raspberrytextboard resource " + resourceid);
+            if (params != null && params.length() != 0)
+                System.out.println("\t params " + params);
+            return ExecuteResponse.success();
+        }
+
+    }
+
+    public static class RaspberryDevice extends BaseInstanceEnabler {
+        public final String GROUP_ID = "Parking-Spot-4";
+        private String state = "free";
+        private String vehicleID = "";
+        private double billingRate = 0.01;
+
+        public RaspberryDevice() {
+        }
+
+        @Override
+        public ReadResponse read(int resourceid) {
+            System.out.println("Read on raspberry Resource " + resourceid);
+            switch (resourceid) {
+            /*
+             * case 0: return ReadResponse.success(resourceid, getManufacturer());
+             */
+            case 32800:
+                return ReadResponse.success(resourceid, GROUP_ID);
+            case 32801:
+                return ReadResponse.success(resourceid, state);
+            case 32802:
+                return ReadResponse.success(resourceid, vehicleID);
+            case 32803:
+                return ReadResponse.success(resourceid, billingRate);
+            default:
+                return super.read(resourceid);
+            }
+        }
+
+        @Override
+        public ExecuteResponse execute(int resourceid, String params) {
+            System.out.println("Execute on raspberry resource " + resourceid);
+            if (params != null && params.length() != 0)
+                System.out.println("\t params " + params);
+            return ExecuteResponse.success();
+        }
+
+        @Override
+        public WriteResponse write(int resourceid, LwM2mResource value) {
+            System.out.println("Write on raspberry Resource " + resourceid + " value " + value);
+            switch (resourceid) {
+            /*
+             * case 13: return WriteResponse.notFound(); case 14: setUtcOffset((String) value.getValue());
+             * fireResourcesChange(resourceid); return WriteResponse.success();
+             */
+            case 32801:
+                setState((String) value.getValue());
+                return WriteResponse.success();
+            case 32802:
+                setVehicleID((String) value.getValue());
+                return WriteResponse.success();
+            case 32803:
+                setBillingRate((Float) value.getValue());
+                return WriteResponse.success();
+            default:
+                return super.write(resourceid, value);
+            }
+        }
+
+        public void setState(String state) {
+            if (!(state.equals("free") || state.equals("occupied") || state.equals("reserved"))) {
+                System.out.println("setState: invalid state state=" + state);
+                return;
+            }
+
+            this.state = state;
+        }
+
+        public void setVehicleID(String vehicleID) {
+            this.vehicleID = vehicleID;
+        }
+
+        public void setBillingRate(float billingRate) {
+            if (billingRate < 0) {
+                System.out.println("setBillingRate: invalid billingRate billingRate=" + billingRate);
+                return;
+            }
+
+            this.billingRate = (double) billingRate;
         }
     }
 }
