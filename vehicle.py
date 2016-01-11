@@ -107,18 +107,27 @@ def printMenu(choices):
     endwin()
 
     if choice == len(choices):
-        sys.exit(0)
+        client.stop()
+        sys.exit(2)
 
     return choices[choice-1].replace("Parking spot ", "")
 
 def main():  # pragma: no cover
     global client
     client = HelperClient(server=("127.0.0.1", 5683))
-    chooseParkingSpot()
+
+    try:
+        chooseParkingSpot()
+    except KeyboardInterrupt:
+        refresh()
+        endwin()
+        client.stop()
+        sys.exit(2)
 
     # response = client.post(path, payload)
     #
     # response = client.delete(path)
+    client.stop()
     sys.exit(2)
 
 if __name__ == '__main__':  # pragma: no cover
