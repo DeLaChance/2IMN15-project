@@ -34,6 +34,8 @@ class Reservation(BaseResource):
         return self
 
     def render_POST(self, request):
+        parkingSpotId = request.options[1].value
+
         if self.index is not None:
             self.payload = '{"error": true, "message": "No index should be given when using POST"}'
         else:
@@ -41,32 +43,27 @@ class Reservation(BaseResource):
             if data["from"] > data["to"]:
                 self.payload = '{"error": true, "message": "The TO value should not be lower than the FROM value}'
             else:
-                if not self._fromto_is_ok(data["parkingSpotId"], data["from"], data["to"]):
+                if not self._fromto_is_ok(parkingSpotId, data["from"], data["to"]):
                     self.payload = '{"error": true, "message": "There already is a reservation on this spot during this time interval"}'
                 else:
                     query = "INSERT INTO reservations (vehicleId, parkingSpotId, 'from', 'to') values "
                     query += "({}".format(data["vehicleId"])
-                    query += ", {}".format(data["parkingSpotId"])
+                    query += ", {}".format(parkingSpotId)
                     query += ", {}".format(data["from"])
                     query += ", {}".format(data["to"])
                     query += ")"
                     self.payload = self._execute_SQL(query)
-                    self.schedule_script("start", data["parkingSpotId"], data["from"])
+                    self.schedule_script("start", parkingSpotId, data["from"])
         return self
 
     def schedule_script(self, action, id, time):
         """
         Calls the shell script to schedule task at time :time
-        Usage example: schedule_script("remove", "2", int(time.time()))
         """
-
-        # format to [[CC]YY]MMDDhhmm[.ss]
-        formattedTime = datetime.datetime.fromtimestamp(
+        datetime.datetime.fromtimestamp(
             int(time)
-        ).strftime('%Y%m%d%H%M.%S')
-
-        # call process, make sure the script is executable (chmod +x)
-        subprocess.call(["./schedule_script.sh", action, id, formattedTime])
+        ).strftime('%H:%M')
+        subprocess.call(["../schedule_script.sh", action, id, time])
 
     def _fromto_is_ok(self, parkingspotId, fromm, to):
         query = "SELECT * FROM reservations WHERE parkingSpotId = {}".format(parkingspotId)
@@ -79,6 +76,7 @@ class Reservation(BaseResource):
 
     def render_DELETE(self, request):
         parkingSpotId = request.options[1].value
+
         free = "free"
         query1 = "SELECT * FROM reservations WHERE reservationId = {}".format(self.index)
         query1 += " AND parkingSpotId = {}".format(parkingSpotId)

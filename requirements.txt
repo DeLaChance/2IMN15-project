@@ -1,1 +1,2 @@
 -e git://github.com/Tanganelli/CoAPthon.git#egg=CoAPthon
+-e git://github.com/Chiel92/unicurses.git@29e0504febf1899de56d07f0cb3ebf9777a12d0c#egg=UniCurses-master
