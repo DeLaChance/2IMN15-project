@@ -28,12 +28,14 @@ class ParkingSpot:
         print("ip=" + self.ip + ",endpoint=" + self.endpoint)
 
         # test
+        """
         time.sleep(2)
         self.makeReservation("XD")
         time.sleep(10)
         self.enterVehicle()
         time.sleep(10)
         self.leaveVehicle()
+        """
 
 
     def resolveEndpoint(self):

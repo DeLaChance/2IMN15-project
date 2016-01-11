@@ -1,6 +1,6 @@
 #!/bin/bash
 # just to be sure
-export MODELS_FOLDER=/home/pi
+export MODELS_FOLDER=/home/pi/
 
 # kill avahi-publish and java processes
 ps ax | grep avahi-publish | awk '{ print $1 }' | xargs kill -9

@@ -40,6 +40,8 @@ def setState(s):
     while( os.path.exists(lockfileuri) ):
         time.sleep(1);
 
+    print("Python: entering critical section display")
+
     # open lock file and display file
     f1 = open(lockfileuri, 'w')
     f2 = open(displayfileuri, 'w')
@@ -51,6 +53,7 @@ def setState(s):
     f2.close()
     # delete lock file
     os.remove(lockfileuri)
+    print("Python: leaving critical section display")
 
 def setJoyStickState(s):
     import os.path
@@ -59,6 +62,8 @@ def setJoyStickState(s):
 
     while( os.path.exists(lockfileuri) ):
         time.sleep(1);
+
+    print("Python: leaving critical section joystick")
 
     # open lock file and display file
     f1 = open(lockfileuri, 'w')
@@ -72,6 +77,7 @@ def setJoyStickState(s):
 
     # delete lock file
     os.remove(lockfileuri)
+    print("Python: leaving critical section joystick")
 
 def keepSensingJoyStick(thread_name, s_stick):
 
