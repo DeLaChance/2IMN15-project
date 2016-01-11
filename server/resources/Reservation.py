@@ -1,6 +1,8 @@
 import json
 import time
 from BaseResource import BaseResource
+import subprocess
+import datetime
 
 
 class Reservation(BaseResource):
@@ -49,8 +51,17 @@ class Reservation(BaseResource):
                     query += ", {}".format(data["to"])
                     query += ")"
                     self.payload = self._execute_SQL(query)
-                    print query
+                    self.schedule_script("start", data["parkingSpotId"], data["from"])
         return self
+
+    def schedule_script(self, action, id, time):
+        """
+        Calls the shell script to schedule task at time :time
+        """
+        datetime.datetime.fromtimestamp(
+            int(time)
+        ).strftime('%H:%M')
+        subprocess.call(["../schedule_script.sh", action, id, time])
 
     def _fromto_is_ok(self, parkingspotId, fromm, to):
         query = "SELECT * FROM reservations WHERE parkingSpotId = {}".format(parkingspotId)
