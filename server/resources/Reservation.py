@@ -68,7 +68,7 @@ class Reservation(BaseResource):
         ).strftime('%Y%m%d%H%M.%S')
 
         # call process, make sure the script is executable (chmod +x)
-        subprocess.call(["./schedule_script.sh", action, id, formattedTime])
+        subprocess.call(["./schedule_script.sh", str(action), str(id), str(formattedTime)])
 
     def _fromto_is_ok(self, parkingspotId, fromm, to):
         query = "SELECT * FROM reservations WHERE parkingSpotId = {}".format(parkingspotId)
