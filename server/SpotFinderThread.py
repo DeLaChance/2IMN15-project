@@ -48,31 +48,27 @@ def keepAvahiBrowsing(thread_name, ipaddresses, lock):
         time.sleep(5)
 
 def keepReadingJoystickFiles(thread_name, ipaddresses, lock):
-    # listens for UDP packets at port 9090 send by client
-    # this is an ugly solution but notification through lwm2m did not allow
-    # for sending any data with it, i.e. whether joystick was up or down
+    # reads the joystickfiles jsUpdate-<end_point>.txt that are output by Java
+    # assumes these are in the directory below
     print("start keepReadingJoystickFiles thread_name=" + thread_name);
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    path = os.path.realpath(__file__)
+    path = path[0:path.rindex("/")]
+    path = path[0:path.rindex("/")+1] # get parent directory
+    prefix = "jsUpdate-"
+    suffix = ".txt"
+    print("keepReadingJoystickFiles path=" + path)
+
     while( True ):
-        lock.acquire()
-        for ip in ipaddresses:
-            i = 0;
-            while( i < 10 ):
-                try:
-                    s.connect((ip, 4000))
-                    s.send("A")
-                    print("keepReadingJoystickFiles threadname=" + thread_name)
-                    (data,addr) = s.recv(20)
-                    data = str(data)
-                    print("keepReadingJoystickFiles data=" + data )
-                    i = 10
-                except Exception:
-                    time.sleep(2)
-                    i += 1
-                    print("keepReadingJoystickFiles retry i=" + str(i) +", threadname=" + thread_name)
-                s.close()
-        lock.release()
+        fileNames = os.listdir(path)
+        for fileName in fileNames:
+            if prefix in fileName:
+                endpoint = fileName[len(prefix):len(fileName)-len(suffix)]
+                print("keepReadingJoystickFiles fileName=" + fileName, "endpoint=" + endpoint)
+                RequestUtils.enterOrLeaveVehicle(endpoint)
+                # delete file
+                os.remove(fileName)
         time.sleep(1)
+
 
 def sendServerIPtoParkingSpot(thread_name, ip, ownIP):
     # sends the server IP to the parking spot s.t. it can start lwm2mclient

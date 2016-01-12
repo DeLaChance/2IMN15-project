@@ -57,27 +57,38 @@ def setState(s):
     os.remove(lockfileuri)
     print("Python: leaving critical section display")
 
-def sendJoyStickStatus(status, serverip):
-    s = socket.socket() # Create a socket object
-    host = "192.168.1.122" # Get local machine name
-    port = 4000 # Reserve a port for your service.
+def setJoyStickState(s):
+    import os.path
+    lockfileuri = config.HOME_DIR + "jslock.txt"
+    jsfileuri = config.HOME_DIR + "js.txt"
 
-    s.bind((host, port))
-    s.listen(5);
-    b = True
+    if( os.path.exists(jsfileuri) ):
+        print("Python: jslock.txt exists, no need to push joystick state")
+        return
 
-    while( b ):
-        (c,addr) = s.accept()
-        data = c.recv(1024)
-        if data != None:
-            c.send(status)
-            b = False
-    c.close()
-    s.close()
+    while( os.path.exists(lockfileuri) ):
+        time.sleep(1);
 
-def keepSensingJoyStick(thread_name, s_stick, serverip):
+    print("Python: entering critical section joystick")
+
+    # open lock file and display file
+    f1 = open(lockfileuri, 'w')
+    f2 = open(jsfileuri, 'w')
+
+    f1.write("a")
+    f2.write(s)
+
+    f1.close()
+    f2.close()
+
+    # delete lock file
+    os.remove(lockfileuri)
+    print("Python: leaving critical section joystick")
+
+def keepSensingJoyStick(thread_name, s_stick):
 
     print("Starting joystick thread " + thread_name + "\n")
+    oldKey = None
 
     while True:
         # block (with timeout) until an event is available
@@ -85,17 +96,19 @@ def keepSensingJoyStick(thread_name, s_stick, serverip):
         event = s_stick.read()
         key = event.key
 
-        if key == config.UP:
-            #enter vehicle
-            print("Python: joystick is up")
-            sendJoyStickStatus("up", serverip)
+        if( oldKey != key and (key == config.UP or key == config.DOWN) ):
+            if key == config.UP:
+                #enter vehicle
+                print("Python: joystick is up")
+                setJoyStickState(str(config.UP))
 
-        if key == config.DOWN:
-            #leave vehicle
-            print("Python: joystick is down")
-            sendJoyStickStatus("down", serverip)
+            if key == config.DOWN:
+                #leave vehicle
+                print("Python: joystick is down")
+                setJoyStickState(str(config.DOWN))
 
     print("Stopping joystick thread " + thread_name + "\n")
+
 
 
 def keepUpdatingDisplay(thread_name, sense):
