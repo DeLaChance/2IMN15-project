@@ -12,23 +12,47 @@ class Reservation(BaseResource):
                                           observable=True, allow_children=True)
 
     def render_GET(self, request):
-        parkingSpotId = request.options[1].value
+        print request.options[0].value
 
-        # SQL query to retrieve reservations
-        query = "SELECT * FROM reservations WHERE parkingSpotId = {}".format(parkingSpotId)
-        if self.index is not None:
-            query += " AND reservationId = {}".format(self.index)
+        # /vehicles/:id/reservations/:id
+        if request.options[0].value == "vehicles":
+            vehicleId = request.options[1].value
 
-        # Execute SQL
-        rows = self._execute_SQL(query)
+            # SQL query to retrieve reservations
+            query = "SELECT * FROM reservations WHERE vehicleId = {}".format(vehicleId)
+            if self.index is not None:
+                query += " AND reservationId = {}".format(self.index)
 
-        # Convert to JSON
-        if len(rows) == 0:
-            self.payload = "[]"
-        else:
-            self.payload = self._to_JSON(rows, self.index is not None)
+            # Execute SQL
+            rows = self._execute_SQL(query)
 
-        return self
+            # Convert to JSON
+            if len(rows) == 0:
+                self.payload = "[]"
+            else:
+                self.payload = self._to_JSON(rows, self.index is not None)
+
+            return self
+
+        # /parkingspots/:id/reservations/:id
+        elif request.options[0].value == "parkingspots":
+            parkingSpotId = request.options[1].value
+
+            # SQL query to retrieve reservations
+            query = "SELECT * FROM reservations WHERE parkingSpotId = {}".format(parkingSpotId)
+            if self.index is not None:
+                query += " AND reservationId = {}".format(self.index)
+
+            # Execute SQL
+            rows = self._execute_SQL(query)
+
+            # Convert to JSON
+            if len(rows) == 0:
+                self.payload = "[]"
+            else:
+                self.payload = self._to_JSON(rows, self.index is not None)
+
+            return self
 
     # NOT implemented yet!
     # def render_PUT(self, request):

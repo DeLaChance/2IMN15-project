@@ -10,6 +10,8 @@ class CoAPServer(CustomCoAP):
         CustomCoAP.__init__(self, (host, port))
         self.add_resource('parkingspots/', ParkingSpot())
         self.add_resource('parkingspots/*/reservations/', Reservation())
+        self.add_resource('vehicles/', BaseResource("Vehicle"))
+        self.add_resource('vehicles/*/reservations/', Reservation())
 
 def main():
     if( len(sys.argv) < 2 ):
