@@ -19,7 +19,7 @@ def executeSQL(query):
     return rows
 
 def getState(endpoint):
-    query = "SELECT state FROM parkingspots WHERE parkingSpotId='" + endpoint + "'"
+    query = "SELECT state FROM parkingspots WHERE endpoint='" + endpoint + "'"
     rows = executeSQL(query)
 
     if( len(rows) == 0 or len(rows) > 1 ):
@@ -60,11 +60,10 @@ def createParkingSpot(ip):
         print("RequestUtils: resolving endpoint failed, no entry was made")
         return
 
-    pId = resolveId(ip)
     print("RequestUtils: ip=" + ip + ",ParkingSpot: endpoint=" + endpoint)
 
     # write ParkingSpot to sqliteDB
-    if( writeToDB(endpoint, pId) == False ):
+    if( writeToDB(endpoint) == False ):
         print("RequestUtils: writing endpoint=" + endpoint + " to DB failed, entry already exists or error")
 
     # observing joystick
@@ -73,7 +72,7 @@ def createParkingSpot(ip):
 
 def resolveEndpoint(ip):
     # finds endpoint belonging to ip
-    jsondata = makeHTTPRequest("/api/clients","GET",{}).text
+    jsondata = makeHTTPRequest("/api/clients","GET", {}).text
     arr = json.loads(jsondata)
 
     for elem in arr:
@@ -102,7 +101,7 @@ def writeToDB(endpoint, pId):
 
     if( len(rows) == 0 ):
         # endpoint is a new entry in DB
-        insertQuery = "INSERT INTO `parkingspots`(`parkingSpotId`,`state`,`price`, `id`) VALUES ('" + endpoint +"','free',5, '" + str(pId) + "');"
+        insertQuery = "INSERT INTO `parkingspots`(`parkingSpotId`,`state`,`price`) VALUES (NULL,'free',5,'" + endpoint +"');"
         print("RequestUtils: inserting endpoint=" + endpoint + " into sqliteDB")
         executeSQL(insertQuery)
         return True

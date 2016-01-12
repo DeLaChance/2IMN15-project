@@ -23,7 +23,7 @@ class ParkingSpot(BaseResource):
 
         # SQL query to retrieve parking spots
         if self.index is not None:
-            query = "SELECT * FROM parkingspots as p"
+            query = "SELECT parkingSpotId, state, price FROM parkingspots as p"
             query += " WHERE p.parkingSpotId = {}".format(self.index)
         else:
             query = "SELECT parkingSpotId, 'free' as state, price FROM parkingspots "
