@@ -1,20 +1,35 @@
 from coap.CustomClient import CustomClient
-import json, time
+import json, time, sqlite3
 from flask import Flask, render_template
 app = Flask(__name__)
+
+DATABASE = '../server/sqlite.db'
 
 @app.route("/")
 def hello():
     return render_template('base.html')
 
-@app.route("/parkingspots.json")
-def parkingspots():
-    jeding = json.loads(client.get("/parkingspots", '{{"from": {}, "to": {}}}'.format(time.time(), time.time() + 1)).payload)
-    print jeding
-    return render_template('parkingspots.json', parkingspots=jeding)
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
+
+def getData(table):
+    connection = sqlite3.connect(DATABASE)
+    connection.text_factory = str
+    connection.row_factory = dict_factory
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM `%s`" % table)
+    output = json.dumps(cursor.fetchall())
+    connection.commit()
+    connection.close()
+    return output
+
+@app.route("/api/<table>")
+def parkingspots(table):
+    return getData(table)
 
 if __name__ == "__main__":
-    global client
-    client = CustomClient(server=("127.0.0.1", 5683))
     app.debug = True
     app.run()
