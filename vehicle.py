@@ -17,8 +17,8 @@ client = None
 def chooseParkingSpot():
     print "Enter from and to what time you wish to reserve a spot (MM-DD HH:mm:ss):"
     try:
-        fromm = int(time.mktime(time.strptime("2015-"+raw_input("From: "), "%Y-%m-%d %H:%M:%S")))
-        to = int(time.mktime(time.strptime("2015-"+raw_input("To:   "), "%Y-%m-%d %H:%M:%S")))
+        fromm = int(time.mktime(time.strptime("2016-"+raw_input("From: "), "%Y-%m-%d %H:%M:%S")))
+        to = int(time.mktime(time.strptime("2016-"+raw_input("To:   "), "%Y-%m-%d %H:%M:%S")))
     except:
         print "ERROR: Date was of the wrong format"
         client.stop()
