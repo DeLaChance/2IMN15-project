@@ -31,8 +31,8 @@ class ParkingSpot(BaseResource):
             query += " (SELECT p.parkingSpotId FROM parkingspots as p"
             query += " INNER JOIN reservations as r"
             query += " ON r.parkingSpotId = p.parkingSpotId"
-            query += " WHERE  r.'from' < {}".format(to)
-            query += " OR r.'to' > {})".format(fromm)
+            query += " WHERE {} >= r.'from'".format(to)
+            query += " AND r.'to' >= {})".format(fromm)
 
         # Execute SQL
         rows = self._execute_SQL(query)
