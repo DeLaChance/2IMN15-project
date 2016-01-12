@@ -2,11 +2,27 @@
 <html>
 <head>
     <link rel="stylesheet" href="{{ url_for('static', filename='foundation-6/css/foundation.min.css')}}">
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='typography.css')}}">
+    <script src="{{ url_for('static', filename='foundation-6/js/vendor/jquery.min.js')}}"></script>
 </head>
 <body>
-    <h1>Test</h1>
-    <script src="{{ url_for('static', filename='foundation-6/js/vendor/jquery.min.js')}}"></script>
+    <header>
+        <div class="row">
+            <div class="small 12 columns">
+                <div class="header__logo">
+                    <h1>Parking Manager</h1>
+                </div>
+                <div clas="nav">
+                    <a class="header__tab" href="/page/attendant">Attendant</a>
+                    <a class="header__tab" href="/page/tables">Tables</a>
+                    <a class="header__tab" href="/page/reports">Reports</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    {% block content %}{% endblock %}
+
     <script src="{{ url_for('static', filename='foundation-6/js/vendor/what-input.min.js')}}"></script>
     <script src="{{ url_for('static', filename='foundation-6/js/foundation.min.js')}}"></script>
 </body>

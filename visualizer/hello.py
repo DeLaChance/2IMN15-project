@@ -1,4 +1,3 @@
-from coap.CustomClient import CustomClient
 import json, time, sqlite3
 from flask import Flask, render_template
 app = Flask(__name__)
@@ -28,7 +27,13 @@ def getData(table):
 
 @app.route("/api/<table>")
 def parkingspots(table):
+    if table == "null":
+        return "[]"
     return getData(table)
+
+@app.route("/page/<page>")
+def page(page):
+    return render_template(page + ".html")
 
 if __name__ == "__main__":
     app.debug = True

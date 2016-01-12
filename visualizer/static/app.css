@@ -1,0 +1,44 @@
+@import url(https://fonts.googleapis.com/css?family=Source+Sans+Pro);
+
+body {
+    margin: 0;
+    height: 100%;
+    width: 100%;
+}
+
+body, h1, h2, h3, h4, h5, h6 {
+    font-family: 'Source Sans Pro', sans-serif;
+}
+
+header {
+    background-color: #007591;
+    position: relative;
+}
+
+.header__logo {
+    display: block;
+    height: 100px;
+    padding: 20px 0;
+    color: white;
+}
+
+.header__tab {
+    padding: 10px 20px;
+    display: inline-block;
+    color: white;
+    background-color: #004551;
+    margin-top: 3px;
+}
+
+.header__tab:hover {
+    background-color: white;
+    color: #007591;
+}
+
+table {
+    width: 100%;
+}
+
+.faded {
+    color: #777;
+}
