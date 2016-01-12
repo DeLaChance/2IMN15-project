@@ -12,14 +12,14 @@ class CoAPServer(CustomCoAP):
         self.add_resource('parkingspots/*/reservations/', Reservation())
 
 def main():
-    if( len(sys.argv) < 2 ):
+    if( len(sys.argv) < 1 ):
         print("usage: python2.7 <own_IP>")
-
-    server = CoAPServer("127.0.0.1", 5683)
+        return
 
     print("Starting initProcess...")
-    # SpotFinderThread.init(sys.argv[1])
+    SpotFinderThread.init(sys.argv[0])
 
+    server = CoAPServer("127.0.0.1", 5683)
     try:
         server.listen(10)
     except KeyboardInterrupt:

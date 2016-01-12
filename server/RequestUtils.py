@@ -64,7 +64,7 @@ def createParkingSpot(ip):
         return
 
     pId = resolveId(endpoint)
-    print("RequestUtils: ip=" + ip + ",ParkingSpot: endpoint=" + endpoint)
+    print("RequestUtils: ip=" + ip + ",ParkingSpot: endpoint=" + endpoint + " id=" + str(pId))
 
     # write ParkingSpot to sqliteDB
     if( writeToDB(endpoint, pId) == False ):
@@ -94,17 +94,19 @@ def resolveId(endpoint):
     jsondata = makeHTTPRequest("/api/clients/" + endpoint + "/32700/0/32800","GET",{}).text
     arr = json.loads(jsondata)
     id = 0;
+    pre = "Parking-Spot-"
 
-    for elem in arr:
-        if elem == 'content':
-            if 'value' in elem['content']:
-                s = elem['value']
-                print("s=" + s)
-                if( len(s) < len("Parking-Spot-") ):
-                    break
-                s = s[len("Parking-Spot-"):len(s)]
-                print("s=" + s)
-                id = int(s)
+    s = str(arr)
+    #print("s=" + str(arr))
+
+    if( len(s) < len(pre) ):
+        return None
+
+    s = s[s.rindex(pre):len(s)]
+    #print("s=" + s)
+    s = s[len(pre):s.rindex("'")]
+    #print("s=" + s)
+    id = int(s)
 
     return id
 

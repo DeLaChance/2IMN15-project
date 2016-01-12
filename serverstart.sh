@@ -11,5 +11,5 @@ rm -rf jsUpdate-*
 #java -jar LWM2MServer.jar &
 
 # start python process
-python2.7 server/InitProcess.py 192.168.1.103
-#python2.7 server/server.py $OWN_IP
+#python2.7 server/InitProcess.py 192.168.1.103
+python2.7 server/server.py $OWN_IP
