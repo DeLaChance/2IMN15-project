@@ -470,7 +470,7 @@ public class LeshanClientExample {
                     return;
                 }
 
-                System.out.println("Java: entering critical seciton joystick");
+                System.out.println("Java: entering critical section joystick");
 
                 PrintWriter writer = new PrintWriter(lockUri, "UTF-8");
                 writer.println("a");
@@ -511,7 +511,7 @@ public class LeshanClientExample {
                     System.out.println("joyStickListenerThread deletion failed of lock or js file");
                 }
 
-                System.out.println("Java: leaving critical seciton joystick");
+                System.out.println("Java: leaving critical section joystick");
 
             } catch (Exception ex) {
 

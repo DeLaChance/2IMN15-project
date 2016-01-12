@@ -29,7 +29,7 @@ def keepAvahiBrowsing(thread_name, ipaddresses, lock):
     print("start keepAvahiBrowsing: threadname=" + thread_name)
     while( True ):
         (output, err) = runShellCommand("avahi-browse -rtp _coap._udp")
-        if( (err == None or len(err) > 0) or (output == None or len(output) == 0) ):
+        if( (err == None) or (output == None or len(output) == 0) ):
             print("SpotFinderThread: error avahi-browse err=" + str(err) + ",out=" + output)
         else:
             lines = output.splitlines()

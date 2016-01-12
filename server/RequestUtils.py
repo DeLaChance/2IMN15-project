@@ -60,10 +60,11 @@ def createParkingSpot(ip):
         print("RequestUtils: resolving endpoint failed, no entry was made")
         return
 
+    pId = resolveId(ip)
     print("RequestUtils: ip=" + ip + ",ParkingSpot: endpoint=" + endpoint)
 
     # write ParkingSpot to sqliteDB
-    if( writeToDB(endpoint) == False ):
+    if( writeToDB(endpoint, pId) == False ):
         print("RequestUtils: writing endpoint=" + endpoint + " to DB failed, entry already exists or error")
 
     # observing joystick
@@ -85,14 +86,23 @@ def resolveEndpoint(ip):
 
     return None
 
-def writeToDB(endpoint):
+def resolveId(ip):
+    # finds endpoint belonging to ip
+    jsondata = makeHTTPRequest("/api/clients","GET",{}).text
+    arr = json.loads(jsondata)
+    id = 0;
+
+    return id
+
+
+def writeToDB(endpoint, pId):
     # creates new entry in sqlite DB
     query = "SELECT * FROM `parkingspots` WHERE parkingSpotId='" + endpoint + "'"
     rows = executeSQL(query)
 
     if( len(rows) == 0 ):
         # endpoint is a new entry in DB
-        insertQuery = "INSERT INTO `parkingspots`(`parkingSpotId`,`state`,`price`) VALUES ('" + endpoint +"','free',5);"
+        insertQuery = "INSERT INTO `parkingspots`(`parkingSpotId`,`state`,`price`, `id`) VALUES ('" + endpoint +"','free',5, '" + str(pId) + "');"
         print("RequestUtils: inserting endpoint=" + endpoint + " into sqliteDB")
         executeSQL(insertQuery)
         return True
