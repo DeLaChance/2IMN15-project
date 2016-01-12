@@ -142,7 +142,7 @@ def printMenu(choices):
 
 def main():  # pragma: no cover
     global client
-    client = CustomClient(server=("127.0.0.1", 5683))
+    client = CustomClient(server=("127.0.0.1", 5700))
 
     try:
         chooseParkingSpot()

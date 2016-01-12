@@ -19,7 +19,7 @@ def main():
     print("Starting initProcess...")
     SpotFinderThread.init(sys.argv[0])
 
-    server = CoAPServer("127.0.0.1", 5683)
+    server = CoAPServer("127.0.0.1", 5700)
     try:
         server.listen(10)
     except KeyboardInterrupt:
