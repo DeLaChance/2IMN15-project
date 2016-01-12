@@ -80,9 +80,12 @@ class Reservation(BaseResource):
                     return False
         return True
 
+    # The following function is called when a vehicle leaves a parking spot.
+    # As soon as this happens, the "to" of the reservation has to be changed to the current time,
+    # the state has to change from occupied to free,
+    # and a bill has to be sent for the vehicleId.
     def render_DELETE(self, request):
         parkingSpotId = request.options[1].value
-
         free = "free"
         query1 = "SELECT * FROM reservations WHERE reservationId = {}".format(self.index)
         query1 += " AND parkingSpotId = {}".format(parkingSpotId)
@@ -95,13 +98,30 @@ class Reservation(BaseResource):
                 current_time = time.time()
                 print current_time
                 if fromm < current_time < to:
+
                     query2 += "UPDATE parkingspots SET state = '{}".format(free)
                     query2 += "' WHERE parkingSpotId = {}".format(parkingSpotId)
                     query2 += ";"
                     print self._execute_SQL(query2)
-                    # TODO: automatic billing
-                    print "QUERY2: " + query2
-        query3 = " DELETE FROM reservations WHERE reservationId = {}".format(self.index)
-        query3 += " AND parkingSpotId = {}".format(parkingSpotId)
-        print self._execute_SQL(query3)
+
+                    query3 = "UPDATE reservations SET 'to'= {} " \
+                             "WHERE reservationId = {} " \
+                             "AND parkingSpotId = {}".format(current_time, self.index, parkingSpotId)
+                    print self._execute_SQL(query3)
+                    query4 = "SELECT price FROM parkingspots " \
+                             "WHERE parkingSpotId = {}".format(parkingSpotId)
+                    rows = self._execute_SQL(query4)
+                    price = 0
+                    if len(rows) != 0:
+                        for row in rows:
+                            price = row["price"]
+                    duration = current_time - fromm
+                    totalCost = duration * price
+                    self.payload = '{"price": ' + str(price) + ', "duration": ' + str(duration) + ', "totalcost":' + str(totalCost) + '}'
+                else:
+                    query5 = "DELETE FROM reservations WHERE reservationId = {} " \
+                             "AND parkingSpotId = {}".format(self.index, parkingSpotId)
+                    print self._execute_SQL(query5)
+                    # delete the reservation
+
         return self
