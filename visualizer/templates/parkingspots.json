@@ -1,0 +1,7 @@
+[
+  {% for parkingspot in parkingspots %}
+  {
+    "parkingSpotId": "{{ parkingspot.parkingSpotId}}"
+  }
+  {% endfor %}
+]
