@@ -8,7 +8,7 @@ import sqlite3
 import os
 
 def executeSQL(query):
-    conn = sqlite3.connect(os.path.dirname(os.path.realpath(__file__))+"/../sqlite.db")
+    conn = sqlite3.connect(os.path.dirname(os.path.realpath(__file__))+"/sqlite.db")
     cur = conn.cursor()
     cur.execute(query)
 
@@ -25,7 +25,7 @@ def getState(endpoint):
     if( len(rows) == 0 or len(rows) > 1 ):
         print("getState: endpoint=" + endpoint + " not in DB or has copies ?")
 
-    s = str(rows[0]["state"])
+    s = str(rows[0][0])
     return s
 
 def makeHTTPRequest(url, method, params):
@@ -51,8 +51,8 @@ def createParkingSpot(ip):
     endpoint = None
 
     while( endpoint == None and i < 10 ):
-        time.sleep(2);
         i += 1
+        time.sleep(i);
         endpoint = resolveEndpoint(ip);
         print("Attempt " + str(i) + " resolving endpoint for ip=" + ip)
 
@@ -87,7 +87,7 @@ def resolveEndpoint(ip):
 
 def writeToDB(endpoint):
     # creates new entry in sqlite DB
-    query = "SELECT * FROM parkingspots WHERE parkingSpotId='" + endpoint + "'"
+    query = "SELECT * FROM `parkingspots` WHERE parkingSpotId='" + endpoint + "'"
     rows = executeSQL(query)
 
     if( len(rows) == 0 ):

@@ -20,27 +20,26 @@ def runShellCommand(cmd):
     return (out, err)
 
 def isValidIpv4(s):
-    return re_ip.match(s);
+    return re_ip.match(s) != None;
 
 def getOwnIP():
     return ownIP
 
-def keepAvahiBrowsing(thread_name, ipaddresses):
+def keepAvahiBrowsing(thread_name, ipaddresses, lock):
     print("start keepAvahiBrowsing: threadname=" + thread_name)
     while( True ):
-        #ips = [] # Only keep active IPs
         (output, err) = runShellCommand("avahi-browse -rtp _coap._udp")
         if( (err == None or len(err) > 0) or (output == None or len(output) == 0) ):
             print("SpotFinderThread: error avahi-browse err=" + str(err) + ",out=" + output)
         else:
             lines = output.splitlines()
             for line in lines:
-                #print("Processing line line=" + line)
                 arr = line.split(";")
                 if( len(arr) >= 8 ):
                     ip = arr[7]
+                    #print("SpotFinderThread: testing ip=" + ip + ",isValidIp=" + str(isValidIpv4(ip)) + ",in=" + str(ip in ipaddresses))
                     lock.acquire()
-                    if( isValidIpv4(ip) and (ip in ipaddresses == False) ):
+                    if( isValidIpv4(ip) and (ip in ipaddresses) == False ):
                         print("SpotFinderThread: client-ip found ip=" + ip)
                         thread.start_new_thread(sendServerIPtoParkingSpot, ("sendServerIPtoParkingSpot", ip, getOwnIP()))
                         RequestUtils.createParkingSpot(ip)
@@ -48,24 +47,32 @@ def keepAvahiBrowsing(thread_name, ipaddresses):
                     lock.release()
         time.sleep(5)
 
-def keepReadingJoystickFiles(thread_name, ipaddresses):
-    # reads the joystickfiles jsUpdate-<end_point>.txt that are output by Java
-    # assumes these are in the directory below
+def keepReadingJoystickFiles(thread_name, ipaddresses, lock):
+    # listens for UDP packets at port 9090 send by client
+    # this is an ugly solution but notification through lwm2m did not allow
+    # for sending any data with it, i.e. whether joystick was up or down
     print("start keepReadingJoystickFiles thread_name=" + thread_name);
-    path = os.path.realpath(__file__)
-    prefix = "jsUpdate-"
-    suffix = ".txt"
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     while( True ):
-        fileNames = os.lisdir(path)
-        for fileName in fileNames:
-            if prefix in fileName:
-                endpoint = fileName[len(prefix):len(fileName)-len(suffix)]
-                print("keepReadingJoystickFiles fileName=" + fileName, "endpoint=" + endpoint)
-                RequestUtils.enterOrLeaveVehicle(endpoint)
-                # delete file
-                os.remove(fileName)
+        lock.acquire()
+        for ip in ipaddresses:
+            i = 0;
+            while( i < 10 ):
+                try:
+                    s.connect((ip, 4000))
+                    s.send("A")
+                    print("keepReadingJoystickFiles threadname=" + thread_name)
+                    (data,addr) = s.recv(20)
+                    data = str(data)
+                    print("keepReadingJoystickFiles data=" + data )
+                    i = 10
+                except Exception:
+                    time.sleep(2)
+                    i += 1
+                    print("keepReadingJoystickFiles retry i=" + str(i) +", threadname=" + thread_name)
+                s.close()
+        lock.release()
         time.sleep(1)
-
 
 def sendServerIPtoParkingSpot(thread_name, ip, ownIP):
     # sends the server IP to the parking spot s.t. it can start lwm2mclient
@@ -90,7 +97,7 @@ def init(p_ownIP):
     global ipaddresses
 
     ownIP = p_ownIP
+    ipaddresses = []
     re_ip = re.compile('\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
-    ps = []
-    thread.start_new_thread(keepAvahiBrowsing, ("SpotFinderThread,keepAvahiBrowsing", ipaddresses))
-    thread.start_new_thread(keepReadingJoystickFiles, ("SpotFinderThread,keepReadingJoystickFiles", ipaddresses))
+    thread.start_new_thread(keepAvahiBrowsing, ("SpotFinderThread,keepAvahiBrowsing", ipaddresses, lock))
+    thread.start_new_thread(keepReadingJoystickFiles, ("SpotFinderThread,keepReadingJoystickFiles", ipaddresses, lock))

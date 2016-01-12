@@ -10,6 +10,8 @@ import socket
 # Initialize SenseHat object
 sense = SenseHat()
 
+serverip = ""
+
 def getState():
     import os.path
     lockfileuri = config.HOME_DIR + "displaylock.txt"
@@ -55,31 +57,25 @@ def setState(s):
     os.remove(lockfileuri)
     print("Python: leaving critical section display")
 
-def setJoyStickState(s):
-    import os.path
-    lockfileuri = config.HOME_DIR + "jslock.txt"
-    jsfileuri = config.HOME_DIR + "js.txt"
+def sendJoyStickStatus(status, serverip):
+    s = socket.socket() # Create a socket object
+    host = "192.168.1.122" # Get local machine name
+    port = 4000 # Reserve a port for your service.
 
-    while( os.path.exists(lockfileuri) ):
-        time.sleep(1);
+    s.bind((host, port))
+    s.listen(5);
+    b = True
 
-    print("Python: leaving critical section joystick")
+    while( b ):
+        (c,addr) = s.accept()
+        data = c.recv(1024)
+        if data != None:
+            c.send(status)
+            b = False
+    c.close()
+    s.close()
 
-    # open lock file and display file
-    f1 = open(lockfileuri, 'w')
-    f2 = open(jsfileuri, 'w')
-
-    f1.write("a")
-    f2.write(s)
-
-    f1.close()
-    f2.close()
-
-    # delete lock file
-    os.remove(lockfileuri)
-    print("Python: leaving critical section joystick")
-
-def keepSensingJoyStick(thread_name, s_stick):
+def keepSensingJoyStick(thread_name, s_stick, serverip):
 
     print("Starting joystick thread " + thread_name + "\n")
 
@@ -91,13 +87,13 @@ def keepSensingJoyStick(thread_name, s_stick):
 
         if key == config.UP:
             #enter vehicle
-            print("joystick is up")
-            setJoyStickState(str(config.UP))
+            print("Python: joystick is up")
+            sendJoyStickStatus("up", serverip)
 
         if key == config.DOWN:
             #leave vehicle
-            print("joystick is down")
-            setJoyStickState(str(config.DOWN))
+            print("Python: joystick is down")
+            sendJoyStickStatus("down", serverip)
 
     print("Stopping joystick thread " + thread_name + "\n")
 
@@ -132,6 +128,7 @@ def keepUpdatingDisplay(thread_name, sense):
 
 def main():
     global sense
+    global serverip
     sense = SenseHat()
     sense.clear()
     s_stick = SenseStick()
@@ -166,7 +163,7 @@ def main():
     f.write(serverip)
     f.close()
 
-    keepSensingJoyStick("keepSensingJoyStickThread", s_stick) # might as well run this in the main thread
+    keepSensingJoyStick("keepSensingJoyStickThread", s_stick, serverip) # might as well run this in the main thread
 
 
 if __name__ == '__main__':
