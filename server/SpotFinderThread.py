@@ -4,12 +4,12 @@ import time
 import re
 from subprocess import Popen, PIPE
 import socket
-import sys
-import ParkingSpot
+import os
+import RequestUtils
 
-ps = [] # list of parking spots
 re_ip = None
 ownIP = ""
+ipaddresses = []
 
 lock = threading.Lock()
 
@@ -22,29 +22,10 @@ def runShellCommand(cmd):
 def isValidIpv4(s):
     return re_ip.match(s);
 
-def getParkingSpots():
-    global lock
-    lock.acquire()
-    ps2 = list(ps)
-    lock.release()
-    return ps2
-
-def findParkingSpotByIp(ip):
-    global lock
-    retVal = None
-    lock.acquire()
-    for spot in ps:
-        ip2 =spot.getIP()
-        if ip2 == ip:
-            retVal = spot
-            break
-    lock.release()
-    return retVal
-
 def getOwnIP():
     return ownIP
 
-def keepAvahiBrowsing(thread_name, ps):
+def keepAvahiBrowsing(thread_name, ipaddresses):
     print("start keepAvahiBrowsing: threadname=" + thread_name)
     while( True ):
         #ips = [] # Only keep active IPs
@@ -58,16 +39,33 @@ def keepAvahiBrowsing(thread_name, ps):
                 arr = line.split(";")
                 if( len(arr) >= 8 ):
                     ip = arr[7]
-                    if( isValidIpv4(ip) and findParkingSpotByIp(ip) == None ):
+                    lock.acquire()
+                    if( isValidIpv4(ip) and (ip in ipaddresses == False) ):
                         print("SpotFinderThread: client-ip found ip=" + ip)
                         thread.start_new_thread(sendServerIPtoParkingSpot, ("sendServerIPtoParkingSpot", ip, getOwnIP()))
-                        parkingSpot = ParkingSpot.ParkingSpot(ip)
-                        
-                        lock.acquire()
-                        ps.append(parkingSpot)
-                        lock.release()
+                        RequestUtils.createParkingSpot(ip)
+                        ipaddresses.append(ip)
+                    lock.release()
+        time.sleep(5)
 
-        time.sleep(3)
+def keepReadingJoystickFiles(thread_name, ipaddresses):
+    # reads the joystickfiles jsUpdate-<end_point>.txt that are output by Java
+    # assumes these are in the directory below
+    print("start keepReadingJoystickFiles thread_name=" + thread_name);
+    path = os.path.realpath(__file__)
+    prefix = "jsUpdate-"
+    suffix = ".txt"
+    while( True ):
+        fileNames = os.lisdir(path)
+        for fileName in fileNames:
+            if prefix in fileName:
+                endpoint = fileName[len(prefix):len(fileName)-len(suffix)]
+                print("keepReadingJoystickFiles fileName=" + fileName, "endpoint=" + endpoint)
+                RequestUtils.enterOrLeaveVehicle(endpoint)
+                # delete file
+                os.remove(fileName)
+        time.sleep(1)
+
 
 def sendServerIPtoParkingSpot(thread_name, ip, ownIP):
     # sends the server IP to the parking spot s.t. it can start lwm2mclient
@@ -87,12 +85,12 @@ def sendServerIPtoParkingSpot(thread_name, ip, ownIP):
 
 
 def init(p_ownIP):
-    global ips
-    global ps
     global re_ip
     global ownIP
+    global ipaddresses
 
     ownIP = p_ownIP
     re_ip = re.compile('\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
     ps = []
-    thread.start_new_thread(keepAvahiBrowsing, ("SpotFinderThread", ps))
+    thread.start_new_thread(keepAvahiBrowsing, ("SpotFinderThread,keepAvahiBrowsing", ipaddresses))
+    thread.start_new_thread(keepReadingJoystickFiles, ("SpotFinderThread,keepReadingJoystickFiles", ipaddresses))

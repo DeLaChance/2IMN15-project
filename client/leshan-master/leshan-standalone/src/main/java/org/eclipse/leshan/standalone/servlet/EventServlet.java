@@ -15,7 +15,9 @@
  *******************************************************************************/
 package org.eclipse.leshan.standalone.servlet;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -107,7 +109,34 @@ public class EventServlet extends EventSourceServlet {
                         .append(observation.getPath().toString()).append("\",\"val\":").append(gson.toJson(value))
                         .append("}").toString();
 
+                if (data.indexOf("3345/0") > 0) {
+                    // update of joystick, doesn't matter whether it is up or down
+                    System.out.println("newValue: joystick update detected at server-side");
+                    writeToLog(data, client.getEndpoint());
+                }
+
                 sendEvent(EVENT_NOTIFICATION, data, client.getEndpoint());
+            }
+        }
+
+        public void writeToLog(String data, String endpoint) {
+            // "{"ep":"2f2a6599-7dbd-428f-897e-a305c917fbc4","res":"/3345/0","val":{"id":0,"resources":[]}}"
+            try {
+                String u = "jsUpdate-" + endpoint + ".txt";
+                File f = new File(u);
+
+                if (f.exists()) {
+                    System.out.println("writeToLog: " + u + " needs to be consumed first.");
+                    return;
+                }
+
+                PrintWriter writer = new PrintWriter(u, "UTF-8");
+                writer.println("a");
+                writer.close();
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                System.out.println("writeToLog: " + e.toString());
+                e.printStackTrace();
             }
         }
 
