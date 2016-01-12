@@ -10,7 +10,8 @@ def startReservation(parkingSpotId):
     cursor.execute("UPDATE parkingspots SET state = 'reserved' WHERE parkingSpotId = {}".format(parkingSpotId))
 
     # update parkingspot through lwm2m
-    RequestUtils.makeReservation(parkingSpotId,"XD-LOL")
+    endpoint = RequestUtils.findEndpointById(parkingSpotId)
+    RequestUtils.makeReservation(endpoint,"XD-LOL")
 
     connection.commit()
     connection.close()
@@ -21,7 +22,8 @@ def removeReservation(parkingSpotId):
     cursor.execute("UPDATE parkingspots SET state = 'free' WHERE parkingSpotId = {}".format(parkingSpotId))
 
     # update parkingspot through lwm2m
-    RequestUtils.endReservation(parkingSpotId)
+    endpoint = RequestUtils.findEndpointById(parkingSpotId)
+    RequestUtils.endReservation(endpoint)
 
     connection.commit()
     connection.close()

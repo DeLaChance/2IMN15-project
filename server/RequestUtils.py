@@ -19,11 +19,14 @@ def executeSQL(query):
     return rows
 
 def getState(endpoint):
-    query = "SELECT state FROM parkingspots WHERE parkingSpotId='" + endpoint + "'"
+    query = "SELECT state FROM parkingspots WHERE endpoint='" + endpoint + "'"
     rows = executeSQL(query)
 
     if( len(rows) == 0 or len(rows) > 1 ):
         print("getState: endpoint=" + endpoint + " not in DB or has copies ?")
+        return
+
+    print("rows[0]=" + str(rows[0]))
 
     s = str(rows[0][0])
     return s
@@ -60,7 +63,7 @@ def createParkingSpot(ip):
         print("RequestUtils: resolving endpoint failed, no entry was made")
         return
 
-    pId = resolveId(ip)
+    pId = resolveId(endpoint)
     print("RequestUtils: ip=" + ip + ",ParkingSpot: endpoint=" + endpoint)
 
     # write ParkingSpot to sqliteDB
@@ -86,11 +89,22 @@ def resolveEndpoint(ip):
 
     return None
 
-def resolveId(ip):
+def resolveId(endpoint):
     # finds endpoint belonging to ip
-    jsondata = makeHTTPRequest("/api/clients","GET",{}).text
+    jsondata = makeHTTPRequest("/api/clients/" + endpoint + "/32700/0/32800","GET",{}).text
     arr = json.loads(jsondata)
     id = 0;
+
+    for elem in arr:
+        if elem == 'content':
+            if 'value' in elem['content']:
+                s = elem['value']
+                print("s=" + s)
+                if( len(s) < len("Parking-Spot-") ):
+                    break
+                s = s[len("Parking-Spot-"):len(s)]
+                print("s=" + s)
+                id = int(s)
 
     return id
 
@@ -104,7 +118,7 @@ def clearDB():
 
 def writeToDB(endpoint, pId):
     # creates new entry in sqlite DB
-    query = "SELECT * FROM `parkingspots` WHERE parkingSpotId='" + endpoint + "'"
+    query = "SELECT * FROM `parkingspots` WHERE endpoint='" + endpoint + "'"
     rows = executeSQL(query)
 
     if( len(rows) == 0 ):
@@ -115,6 +129,16 @@ def writeToDB(endpoint, pId):
         return True
 
     return False
+
+def findEndpointById(pId):
+    query = "SELECT endpoint FROM `parkingspots` WHERE parkingSpotId = '" + str(pId) + "'";
+    rows = executeSQL(query)
+
+    if( len(rows) == 0 ):
+        return None
+
+    return str(rows[0][0])
+
 
 def makeReservation(endpoint, vehicleID):
     # update vehicleID

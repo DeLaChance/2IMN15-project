@@ -107,6 +107,8 @@ def keepSensingJoyStick(thread_name, s_stick):
                 print("Python: joystick is down")
                 setJoyStickState(str(config.DOWN))
 
+        oldKey = key
+
     print("Stopping joystick thread " + thread_name + "\n")
 
 
@@ -176,7 +178,7 @@ def main():
     f.write(serverip)
     f.close()
 
-    keepSensingJoyStick("keepSensingJoyStickThread", s_stick, serverip) # might as well run this in the main thread
+    keepSensingJoyStick("keepSensingJoyStickThread", s_stick) # might as well run this in the main thread
 
 
 if __name__ == '__main__':
