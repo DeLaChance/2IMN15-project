@@ -156,7 +156,7 @@ def main():
     print("start looking up serverip \n")
     # assumes that avahi-publish has been started already
     s = socket.socket() # Create a socket object
-    host = "192.168.1.122" # Get local machine name
+    host = "127.0.0.1" # Get local machine name
     port = 4000 # Reserve a port for your service.
 
     s.bind((host, port))

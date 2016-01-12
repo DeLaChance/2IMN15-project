@@ -69,6 +69,7 @@ class Reservation(BaseResource):
         ).strftime('%Y%m%d%H%M.%S')
 
         # call process, make sure the script is executable (chmod +x)
+        print("Calling schedule_script action=" + str(action) + ",id=" + str(id) + ",formattedTime=" + str(formattedTime))
         subprocess.call([os.path.dirname(os.path.realpath(__file__))+"/../schedule_script.sh", str(action), str(id), str(formattedTime)])
 
     def _fromto_is_ok(self, parkingspotId, fromm, to):

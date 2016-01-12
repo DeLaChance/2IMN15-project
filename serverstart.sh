@@ -2,7 +2,7 @@
 # just to be sure
 BASEDIR=$(dirname $0)
 export MODELS_FOLDER=$BASEDIR
-OWN_IP=""
+OWN_IP=$1
 
 # clean-up
 rm -rf jsUpdate-*

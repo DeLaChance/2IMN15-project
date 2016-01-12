@@ -1,2 +1,2 @@
 #!/bin/sh
-echo "python reserveParkingSpot.py $1 $2" | at -t $3
+echo "python2.7 reserveParkingSpot.py $1 $2 > reserveParkingSpotOutput.txt" | at -t $3
