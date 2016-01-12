@@ -95,5 +95,6 @@ def init(p_ownIP):
     ownIP = p_ownIP
     ipaddresses = []
     re_ip = re.compile('\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
+    RequestUtils.clearDB()
     thread.start_new_thread(keepAvahiBrowsing, ("SpotFinderThread,keepAvahiBrowsing", ipaddresses, lock))
     thread.start_new_thread(keepReadingJoystickFiles, ("SpotFinderThread,keepReadingJoystickFiles", ipaddresses, lock))
