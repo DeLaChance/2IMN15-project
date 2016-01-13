@@ -34,7 +34,7 @@ def removeReservation(parkingSpotId):
     connection.close()
 
 def action(action, parkingSpot):
-    print("reserveParkingSpot: action=" + action + ", parkingSpot=" + str(parkingSpot))
+    print("reserveParkingSpot: action=" + str(action) + ",b=" + str(action=="start") + ", parkingSpot=" + str(parkingSpot))
     if action == "start":
         startReservation(parkingSpot)
     if action =="remove":

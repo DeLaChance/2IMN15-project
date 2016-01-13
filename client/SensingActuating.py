@@ -14,76 +14,83 @@ sense = SenseHat()
 serverip = ""
 
 def getState():
-    import os.path
-    lockfileuri = config.HOME_DIR + "displaylock.txt"
-    displayfileuri = config.HOME_DIR + "display.txt"
+    # just reads the state file
+    try:
+        import os.path
+        displayfileuri = config.HOME_DIR + "display.txt"
 
-    while( os.path.exists(lockfileuri) ):
-        time.sleep(1);
+        f2 = open(displayfileuri, 'r+')
+        s = f2.read()
+        f2.close()
 
-    # open lock file and display file
-    f1 = open(lockfileuri, 'w')
-    f2 = open(displayfileuri, 'r+')
-
-    f1.write("a")
-    s = f2.read()
-    f1.close()
-    f2.close()
-
-    # delete lock file
-    os.remove(lockfileuri)
+    except Exception as e:
+        print("getState e=" + str(e))
 
     return s
 
 def setState(s):
-    import os.path
-    lockfileuri = config.HOME_DIR + "displaylock.txt"
-    displayfileuri = config.HOME_DIR + "display.txt"
+    try:
+        import os.path
+        lockfileuri = config.HOME_DIR + "displaylock.txt"
+        displayfileuri = config.HOME_DIR + "display.txt"
 
-    while( os.path.exists(lockfileuri) ):
-        time.sleep(1);
+        while( os.path.exists(lockfileuri) ):
+            time.sleep(3);
+            os.remove(lockfileuri)
 
-    print("Python: entering critical section display")
+        print("Python: entering critical section display")
 
-    # open lock file and display file
-    f1 = open(lockfileuri, 'w')
-    f2 = open(displayfileuri, 'w')
+        # open lock file and display file
+        f1 = open(lockfileuri, 'w')
+        f2 = open(displayfileuri, 'w')
 
-    f1.write("a")
-    f2.write(s)
+        f1.write("a")
+        f2.write(s)
 
-    f1.close()
-    f2.close()
-    # delete lock file
-    os.remove(lockfileuri)
-    print("Python: leaving critical section display")
+        f1.close()
+        f2.close()
+
+        # delete lock file
+        if( os.path.exists(lockfileuri) ):
+            os.remove(lockfileuri)
+        print("Python: leaving critical section display")
+    except Exception as e:
+        print("setState e=" + str(e))
+
+
 
 def setJoyStickState(s):
-    import os.path
-    lockfileuri = config.HOME_DIR + "jslock.txt"
-    jsfileuri = config.HOME_DIR + "js.txt"
+    try:
+        import os.path
+        lockfileuri = config.HOME_DIR + "jslock.txt"
+        jsfileuri = config.HOME_DIR + "js.txt"
 
-    if( os.path.exists(jsfileuri) ):
-        print("Python: jslock.txt exists, no need to push joystick state")
-        return
+        if( os.path.exists(jsfileuri) ):
+            print("Python: jslock.txt exists, no need to push joystick state")
+            return
 
-    while( os.path.exists(lockfileuri) ):
-        time.sleep(1);
+        while( os.path.exists(lockfileuri) ):
+            time.sleep(3);
+            os.remove(lockfileuri)
 
-    print("Python: entering critical section joystick")
+        print("Python: entering critical section joystick")
 
-    # open lock file and display file
-    f1 = open(lockfileuri, 'w')
-    f2 = open(jsfileuri, 'w')
+        # open lock file and display file
+        f1 = open(lockfileuri, 'w')
+        f2 = open(jsfileuri, 'w')
 
-    f1.write("a")
-    f2.write(s)
+        f1.write("a")
+        f2.write(s)
 
-    f1.close()
-    f2.close()
+        f1.close()
+        f2.close()
 
-    # delete lock file
-    os.remove(lockfileuri)
+        # delete lock file
+        if( os.path.exists(lockfileuri) ):
+            os.remove(lockfileuri)
+
+    except Exception as e:
+        print("setJoyStickState e=" + str(e))
     print("Python: leaving critical section joystick")
 
 def keepSensingJoyStick(thread_name, s_stick):
@@ -153,7 +160,7 @@ def main():
     thread.start_new_thread(keepUpdatingDisplay, ("keepUpdatingDisplayThread", sense))
     #thread.start_new_thread(keepSensingJoyStick, ("keepSensingJoyStickThread", s_stick))
 
-    if( len(sys.argv) == 0 ):
+    if( len(sys.argv) == 1 ):
       # listen for server ip inbound on port 4000
       print("start looking up serverip \n")
       # assumes that avahi-publish has been started already
@@ -176,9 +183,9 @@ def main():
       s.close()
     else:
       serverip = sys.argv[1]
-   
+
     print("serverip=" + sys.argv[1])
- 
+
     f = open(config.HOME_DIR + "serverip.txt", 'w')
     f.write(serverip)
     f.close()

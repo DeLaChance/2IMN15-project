@@ -13,18 +13,17 @@ SERVICE_NAME="PARKING_SPOT";
 PORT=5683;
 NAME="/myparking";
 SUBP="_floor1._sub._coap._udp";
+SERVER_IP=$1
+SERVER_PORT=5683
 
 avahi-publish-service $SERVICE_NAME _coap._udp $PORT $NAME --sub $SUBP &
-python ~/2IMN15-project/client/SensingActuating.py &
+python ~/2IMN15-project/client/SensingActuating.py $SERVER_IP &
 
 # after /home/pi/events/serverip.txt exists we can start java -jar
 while [ ! -f "/home/pi/events/serverip.txt" ]
 do
     sleep 1
 done
-
-SERVER_PORT=5683
-SERVER_IP=`cat /home/pi/events/serverip.txt`
 
 echo "starting LWM2M server SERVER_PORT="$SERVER_PORT", SERVER_IP="$SERVER_IP;
 
