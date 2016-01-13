@@ -57,13 +57,16 @@ def billing():
             for reservation in reservations:
                 if reservation['parkingSpotId'] == spot['parkingSpotId']:
                     start = reservation['from']
+                    end = reservation['to']
                     now = time.time()
-                    diff = (now - start)
+                    if end > now:
+                        diff = (now - start)
+                    else:
+                        diff = (end - start)
                     price = spot['price']
                     cost = diff * price
                     prices[indx] = {'parkingSpotId': spot['parkingSpotId'], 'cost': cost}
                     indx += 1
-                    # prices[spot['parkingSpotId']] = [cost]
 
     return json.dumps(prices)
 
