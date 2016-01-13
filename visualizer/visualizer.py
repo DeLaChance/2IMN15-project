@@ -52,7 +52,7 @@ def billing():
     reservations = json.loads(getData('reservations'))
     prices = []
     for reservation in reservations:
-        if reservation['occupiedSince'] is None:
+        if reservation['occupiedSince'] is not None:
             start = reservation['occupiedSince']
             end = reservation['to']
             now = time.time()

@@ -187,6 +187,7 @@ def leaveVehicle(endpoint):
     # update DB
     query="UPDATE `parkingspots` SET state='free' WHERE endpoint='" + endpoint + "'";
     executeSQL(query)
+    timestamp = int(time.time())
     id = resolveId(endpoint)
-    query="UPDATE `reservations` SET occupied=NULL WHERE parkingSpotId={}".format(id);
+    query="UPDATE `reservations` SET `to`={}} WHERE parkingSpotId={}".format(id,timestamp);
     executeSQL(query)
