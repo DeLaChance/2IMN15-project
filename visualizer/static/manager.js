@@ -22,8 +22,7 @@ function getAllTables(callback) {
 function showTables(json) {
     for (var k in json) {
         var name = json[k].name
-        var amount = json[k].seq
-        appendTable("#tables", name, amount)
+        appendTable("#tables", name)
     }
 }
 
@@ -40,13 +39,13 @@ $(document).ready(function() {
 
 })
 
-function appendTable(target, name, amount) {
-    console.log(target, name, amount)
+function appendTable(target, name) {
+    console.log(target, name)
     jQuery.ajax({
         url: '/api/' + name,
         success: function (data) {
             var json = JSON.parse(data)
-            var title = "<h3>" + name + " (" + amount + ")" + "</h3>\n<hr>\n"
+            var title = "<h3>" + name + " (" + json.length + ")" + "</h3>\n<hr>\n"
             var table = createTable(name, json)
             $(target).append(title + table)
         },
