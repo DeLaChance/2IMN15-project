@@ -65,7 +65,7 @@ def billing():
                         diff = (end - start)
                     price = spot['price']
                     cost = diff * price
-                    prices[indx] = {'parkingSpotId': spot['parkingSpotId'], 'cost': cost}
+                    prices[indx] = {'parkingSpotId': spot['parkingSpotId'], 'reservationId': reservation['reservationId'], 'cost': cost}
                     indx += 1
 
     return json.dumps(prices)
