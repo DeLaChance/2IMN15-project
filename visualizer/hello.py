@@ -50,8 +50,7 @@ def state():
 def billing():
     spots = json.loads(getData('parkingspots'))
     reservations = json.loads(getData('reservations'))
-    prices = [9000]
-    indx = 0
+    prices = []
     for spot in spots:
         if spot['state'] == "occupied" or spot['state'] == "reserved":
             for reservation in reservations:
@@ -65,8 +64,7 @@ def billing():
                         diff = (end - start)
                     price = spot['price']
                     cost = diff * price
-                    prices[indx] = {'parkingSpotId': spot['parkingSpotId'], 'reservationId': reservation['reservationId'], 'cost': cost}
-                    indx += 1
+                    prices.append({'parkingSpotId': spot['parkingSpotId'], 'reservationId': reservation['reservationId'], 'cost': cost})
 
     return json.dumps(prices)
 
