@@ -12,7 +12,19 @@ body, h1, h2, h3, h4, h5, h6 {
 
 header {
     background-color: #007591;
+    background: transparent linear-gradient(90deg, rgb(58, 123, 213), rgb(0, 210, 255)) repeat scroll 0% 0%;
     position: relative;
+}
+
+header img {
+    height: 50px;
+    margin-right: 15px;
+}
+
+header h1 {
+    vertical-align: middle;
+    letter-spacing: -5px;
+    display: inline-block;
 }
 
 .header__logo {
@@ -26,11 +38,16 @@ header {
     padding: 10px 20px;
     display: inline-block;
     color: white;
-    background-color: #004551;
+
     margin-top: 3px;
 }
 
-.header__tab:hover,
+.header__tab:hover {
+    background-color: #004551;
+    background-color: rgba(0, 0, 0, 0.2);
+    color: white;
+}
+
 .header__tab.active {
     background-color: white;
     color: #007591;

@@ -31,6 +31,21 @@ def parkingspots(table):
         return "[]"
     return getData(table)
 
+@app.route("/state/")
+def state():
+    data = json.loads(getData('parkingspots'))
+    reserved = 0
+    free = 0
+    occupied = 0
+    for row in data:
+        if row['state'] == "occupied":
+            occupied += 1
+        if row['state'] == "free":
+            free += 1
+        if row['state'] == "reserved":
+            reserved += 1
+    return json.dumps({"free": free, "occupied": occupied, "reserved": reserved})
+
 @app.route("/page/<page>")
 def page(page):
     return render_template(page + ".html")
