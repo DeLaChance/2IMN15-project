@@ -8,7 +8,7 @@ class Billing(BaseResource):
 
     # Method that updates all billing totalCost by looking at all reservations
     def _update_billing(self, vehicleId):
-        query1 = "SELECT * FROM reservations WHERE vehicleId = {}".format(vehicleId)
+        query1 = "SELECT * FROM reservations WHERE vehicleId = {}".format(int(vehicleId))
         rows = self._execute_SQL(query1)
         if len(rows) != 0:
             for row in rows:
@@ -23,34 +23,35 @@ class Billing(BaseResource):
                         duration = current_time - fromm
                     else:
                         duration = to - fromm
-                query2 = "SELECT * FROM parkingspots WHERE parkingSpotId = {}".format(parkingSpotId)
-                rows2 = self._execute_SQL(query2)
-                if len(rows2) != 0:
-                    for row2 in rows2:
-                        price = row2["price"]
-                        totalcost = duration * price
-                        query3 = "SELECT * FROM billing WHERE reservationId = {}".format(reservationId)
-                        rows3 = self._execute_SQL(query3)
-                        if len(rows3) != 0:
-                            for row3 in rows3:
-                                query4 = "UPDATE billing SET totalCost = {} WHERE billingId = {}".format(totalcost, row3["billingId"])
-                                print self._execute_SQL(query4)
-                        else:
-                            query5 = "INSERT INTO billing (reservationId, totalCost) VALUES ({}, {})".format(reservationId, totalcost)
-                            print self._execute_SQL(query5)
+                    query2 = "SELECT * FROM parkingspots WHERE parkingSpotId = {}".format(parkingSpotId)
+                    rows2 = self._execute_SQL(query2)
+                    if len(rows2) != 0:
+                        for row2 in rows2:
+                            price = row2["price"]
+                            totalcost = duration * price
+                            query3 = "SELECT * FROM billing WHERE reservationId = {}".format(reservationId)
+                            rows3 = self._execute_SQL(query3)
+                            if len(rows3) != 0:
+                                for row3 in rows3:
+                                    query4 = "UPDATE billing SET totalCost = {} WHERE billingId = {}".format(totalcost, row3["billingId"])
+                                    print self._execute_SQL(query4)
+                            else:
+                                query5 = "INSERT INTO billing (reservationId, totalCost) VALUES ({}, {})".format(reservationId, totalcost)
+                                print self._execute_SQL(query5)
 
     def render_GET(self, request):
-        # Ensure all parkingspot states are correct
-        self._update_billing(self.index)
-        # SQL query to retrieve parking spots
-        query1 = "SELECT reservationId FROM reservations WHERE vehicleId = {}".format(self.index)
+        # Ensure all billings are correct
+        vehicle = request.options[1].value
+        self._update_billing(vehicle)
+        # SQL query to retrieve billings
+        query1 = "SELECT reservationId FROM reservations WHERE vehicleId = {}".format(vehicle)
         rows = self._execute_SQL(query1)
         if len(rows) != 0:
             for row in rows:
-                query2 = "SELECT * FROM billing WHERE reservationId = {}".format(reservationId)
+                query2 = "SELECT * FROM billing WHERE reservationId = {}".format(row["reservationId"])
                 rows2 = self._execute_SQL(query2)
                 if len(rows2) == 0:
                     self.payload = "[]"
                 else:
-                    self.payload = self._to_JSON(rows, self.index is not None)
+                    self.payload = self._to_JSON(rows, vehicle is not None)
         return self
