@@ -42,7 +42,9 @@ header h1 {
     margin-top: 3px;
 }
 
-.header__tab:hover {
+.header__tab:hover,
+.header__tab:focus,
+.header__tab:active {
     background-color: #004551;
     background-color: rgba(0, 0, 0, 0.2);
     color: white;
