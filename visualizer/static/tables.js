@@ -3,6 +3,19 @@ String.prototype.capitalizeFirst = function() {
     return this.charAt(0).toUpperCase() + this.slice(1)
 }
 
+// Extend date object to support proper formatting
+Date.prototype.format = function() {
+    var days = this.getDate();
+    var months = this.getMonth()+1;
+    var hours = this.getHours();
+    var minutes = this.getMinutes();
+    minutes = minutes < 10 ? '0'+minutes : minutes;
+    hours = hours < 10 ? '0'+hours : hours;
+    days = days < 10 ? '0'+days : days;
+    months = months < 10 ? '0'+months : months;
+    return  days + "-" + months + "-" + this.getFullYear()  + "  " + hours + ":" + minutes;
+}
+
 /** Create table container. */
 function createTableContainer(target, api, name) {
     jQuery.ajax({
@@ -41,7 +54,7 @@ function repopulateTable(container) {
                 var obj = json[j]
                 var row = ""
                 for(var k in obj) {
-                    row += "<td> " + obj[k] + " </td>\n"
+                    row += "<td> " + format(k, obj[k]) + " </td>\n"
                 }
                 $(rows[j]).html(row)
             }
@@ -59,7 +72,7 @@ function repopulateTable(container) {
                     var obj = json[j]
                     var row = "<tr>\n"
                     for(var k in obj) {
-                        row += "<td> " + obj[k] + " </td>\n"
+                        row += "<td> " + format(k, obj[k]) + " </td>\n"
                     }
                     row += "</tr>\n"
                     $("[data-name='" + name + "'] tbody").append(row)
@@ -68,6 +81,30 @@ function repopulateTable(container) {
         },
         async: false
     });
+}
+
+/** Format data **/
+function format(key, value){
+    if (value == null) {
+        return "-";
+    }
+
+    // Price formatting
+    if (key == "price" || key == "cost"){
+        return "&euro; "+ (value/100).toFixed(2)
+    }
+
+    //Date formatting
+    else if (key == "from" || key == "to" || key == "occupiedSince"){
+        return new Date(value*1000).format();
+    }
+
+    //State formatting
+    else if (key == "state"){
+        return '<span class="dot '+value+'">&nbsp;'+value+"<span>"
+    }
+
+    return value;
 }
 
 /** Retrieve a list of all table names. */
@@ -103,7 +140,7 @@ function createTable(name, json) {
         var obj = json[i]
         var row = "\t\t<tr>\n"
         for(var k in obj) {
-            row += "\t\t\t<td> " + obj[k] + " </td>\n"
+            row += "\t\t\t<td> " + format(k, obj[k]) + " </td>\n"
         }
         row += "\t\t</tr>\n"
         tbody += row

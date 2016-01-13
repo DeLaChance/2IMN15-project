@@ -4,6 +4,7 @@ body {
     margin: 0;
     height: 100%;
     width: 100%;
+    font-weight: 300 !important;
 }
 
 body, h1, h2, h3, h4, h5, h6 {
@@ -61,4 +62,25 @@ table {
 
 .faded {
     color: #777;
+}
+
+/* CUSTOM */
+.dot::before {
+    content: "";
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    padding: 0;
+    margin: 0px;
+    border-radius: 100%;
+}
+
+.dot.free::before {
+    background-color: #63d12d;
+}
+.dot.reserved::before {
+    background-color: #ff9c2e;
+}
+.dot.occupied::before {
+    background-color: #ff5b4f;
 }
