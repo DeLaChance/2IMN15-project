@@ -28,7 +28,7 @@ def getOwnIP():
 def keepAvahiBrowsing(thread_name, ipaddresses, lock, option):
     print("start keepAvahiBrowsing: threadname=" + thread_name + " option=" + option)
     while( True ):
-        (output, err) = runShellCommand("avahi-browse -rtp _coap._udp")
+        (output, err) = runShellCommand("avahi-browse -rtp _coap._udp | grep 'piSenseHat-4'")
         if( (err == None) or (output == None or len(output) == 0) ):
             print("SpotFinderThread: error avahi-browse err=" + str(err) + ",out=" + output)
         else:

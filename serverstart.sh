@@ -1,5 +1,7 @@
 #!/bin/sh
 # just to be sure
+echo "Starting server-side of ParkingSpot-4-application..."
+
 BASEDIR=$(dirname $0)
 export MODELS_FOLDER=$BASEDIR
 OWN_IP=$1
