@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from unicurses import *
 import time
-from termios import tcflush, TCIOFLUSH
+# from termios import tcflush, TCIOFLUSH
 from server.coap.CustomClient import CustomClient
 import logging
 import json
@@ -24,16 +24,31 @@ def chooseParkingSpot():
         client.stop()
         sys.exit(2)
 
-    spots = json.loads(client.get("/parkingspots", '{{"from": {}, "to": {}}}'.format(fromm, to)).payload)
-    choice = printMenu(map((lambda x : "Parking spot " + str(x["parkingSpotId"])), spots))
-    print "Parking spot: " + choice
+    closedParkingSpot = True
+    while closedParkingSpot:
+        spots = json.loads(client.get("/parkingspots", '{{"from": {}, "to": {}}}'.format(fromm, to)).payload)
+        choice = printMenu(map((lambda x : "Parking spot " + str(x["parkingSpotId"])), spots))
+        print "Parking spot: " + choice
 
-    # POST reservation, kijk of het gelukt is
-    response = client.post(
-        "/parkingspots/"+choice+"/reservations",
-        '{{"vehicleId": {}, "from": {}, "to": {}}}'.format(vehicleId, fromm, to)
-    )
-    print response.payload
+        # POST reservation, kijk of het gelukt is
+        response = client.post(
+            "/parkingspots/"+choice+"/reservations",
+            '{{"vehicleId": {}, "from": {}, "to": {}}}'.format(vehicleId, fromm, to)
+        )
+        if response.payload is not None:
+            print "not None"
+            jsonResponse = json.loads(response.payload)
+            if jsonResponse["error"]:
+                print jsonResponse["message"]
+                choice = raw_input("do you want to try again?y/n")
+                if choice == "y":
+                    closedParkingSpot = True
+                else:
+                    closedParkingSpot = False
+        else:
+            closedParkingSpot = False
+
+
 
     client.stop()
     sys.exit(0)
@@ -130,7 +145,7 @@ def printMenu(choices):
 
     # flush stdin and out, because mouse event leaks into it
     sys.stdout.flush()
-    tcflush(sys.stdin, TCIOFLUSH)
+    # tcflush(sys.stdin, TCIOFLUSH)
     refresh()
     endwin()
 
