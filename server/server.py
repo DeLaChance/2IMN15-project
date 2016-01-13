@@ -1,7 +1,7 @@
 from coap.CustomCoAP import CustomCoAP
 from resources.ParkingSpot import ParkingSpot
 from resources.Reservation import Reservation
-from resources.Billing import Billing
+from resources.BaseResource import BaseResource
 
 import SpotFinderThread
 import sys
@@ -13,15 +13,17 @@ class CoAPServer(CustomCoAP):
         self.add_resource('parkingspots/*/reservations/', Reservation())
         self.add_resource('vehicles/', BaseResource("Vehicle"))
         self.add_resource('vehicles/*/reservations/', Reservation())
-        self.add_resource('vehicles/*/billings/', Billing())
 
 def main():
-    # if( len(sys.argv) < 2 ):
-    #     print("usage: python2.7 <own_IP>")
-    #     return
+    if( len(sys.argv) < 2 ):
+        print("usage: python2.7 <own_IP>")
+        return
 
-    # print("Starting initProcess with serverip=" + sys.argv[1])
-    # SpotFinderThread.init(sys.argv[1])
+    print("Starting initProcess with serverip=" + sys.argv[1])
+    if( len(sys.argv) == 3 ):
+        SpotFinderThread.init(sys.argv[1], sys.argv[2])
+    else:
+        SpotFinderThread.init(sys.argv[1], "")
 
     server = CoAPServer("127.0.0.1", 5700)
     try:

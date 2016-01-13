@@ -6,6 +6,7 @@ import config
 import time
 import os
 import socket
+import sys
 
 # Initialize SenseHat object
 sense = SenseHat()
@@ -152,28 +153,32 @@ def main():
     thread.start_new_thread(keepUpdatingDisplay, ("keepUpdatingDisplayThread", sense))
     #thread.start_new_thread(keepSensingJoyStick, ("keepSensingJoyStickThread", s_stick))
 
-    # listen for server ip inbound on port 4000
-    print("start looking up serverip \n")
-    # assumes that avahi-publish has been started already
-    s = socket.socket() # Create a socket object
-    host = "127.0.0.1" # Get local machine name
-    port = 4000 # Reserve a port for your service.
+    if( len(sys.argv) == 0 ):
+      # listen for server ip inbound on port 4000
+      print("start looking up serverip \n")
+      # assumes that avahi-publish has been started already
+      s = socket.socket() # Create a socket object
+      host = "127.0.0.1" # Get local machine name
+      port = 4000 # Reserve a port for your service.
 
-    s.bind((host, port))
-    s.listen(5);
-    b = True
+      s.bind((host, port))
+      s.listen(5)
+      b = True
 
-    while( b ):
+      while( b ):
         (c,addr) = s.accept()
         data = c.recv(1024)
         if data != None:
-            serverip = str( data ) # contains server ip
-            b = False
+          serverip = str( data ) # contains server ip
+          b = False
 
-    print("serverip=" + serverip + "\n")
-    c.close()
-    s.close()
-
+      c.close()
+      s.close()
+    else:
+      serverip = sys.argv[1]
+   
+    print("serverip=" + sys.argv[1])
+ 
     f = open(config.HOME_DIR + "serverip.txt", 'w')
     f.write(serverip)
     f.close()

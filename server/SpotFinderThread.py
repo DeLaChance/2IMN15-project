@@ -25,8 +25,8 @@ def isValidIpv4(s):
 def getOwnIP():
     return ownIP
 
-def keepAvahiBrowsing(thread_name, ipaddresses, lock):
-    print("start keepAvahiBrowsing: threadname=" + thread_name)
+def keepAvahiBrowsing(thread_name, ipaddresses, lock, option):
+    print("start keepAvahiBrowsing: threadname=" + thread_name + " option=" + option)
     while( True ):
         (output, err) = runShellCommand("avahi-browse -rtp _coap._udp")
         if( (err == None) or (output == None or len(output) == 0) ):
@@ -41,9 +41,14 @@ def keepAvahiBrowsing(thread_name, ipaddresses, lock):
                     lock.acquire()
                     if( isValidIpv4(ip) and (ip in ipaddresses) == False ):
                         print("SpotFinderThread: client-ip found ip=" + ip)
-                        thread.start_new_thread(sendServerIPtoParkingSpot, ("sendServerIPtoParkingSpot", ip, getOwnIP()))
-                        RequestUtils.createParkingSpot(ip)
-                        ipaddresses.append(ip)
+                        b = False
+                        if(option == "skip"):
+                            b = True
+                        else:
+                             b = sendServerIPtoParkingSpot("sendServerIPtoParkingSpot", ip, getOwnIP())
+                        if( b == True ):
+                            RequestUtils.createParkingSpot(ip)
+                            ipaddresses.append(ip)
                     lock.release()
         time.sleep(5)
 
@@ -80,14 +85,15 @@ def sendServerIPtoParkingSpot(thread_name, ip, ownIP):
             s.connect((ip, 4000))
             s.send(ownIP)
             print("sendServerIPtoParkingSpot ip has been sent! threadname=" + thread_name + " ,ip=" + ip)
-            i = 10
+            return True
         except Exception:
             time.sleep(2)
             i += 1
             print("sendServerIPtoParkingSpot retry i=" + str(i) +"! threadname=" + thread_name + " ,ip=" + ip)
 
+    return False
 
-def init(p_ownIP):
+def init(p_ownIP, option):
     global re_ip
     global ownIP
     global ipaddresses
@@ -96,5 +102,5 @@ def init(p_ownIP):
     ipaddresses = []
     re_ip = re.compile('\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
     RequestUtils.clearDB()
-    thread.start_new_thread(keepAvahiBrowsing, ("SpotFinderThread,keepAvahiBrowsing", ipaddresses, lock))
+    thread.start_new_thread(keepAvahiBrowsing, ("SpotFinderThread,keepAvahiBrowsing", ipaddresses, lock, option))
     thread.start_new_thread(keepReadingJoystickFiles, ("SpotFinderThread,keepReadingJoystickFiles", ipaddresses, lock))

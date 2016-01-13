@@ -15,4 +15,4 @@ sleep 5 # wait for the LWM2mServer to be started
 
 # start python process
 #python2.7 server/InitProcess.py 192.168.1.103
-python2.7 server/server.py $OWN_IP
+python2.7 server/server.py $OWN_IP "skip"

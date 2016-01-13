@@ -7,6 +7,7 @@ ps ax | grep avahi-publish | awk '{ print $1 }' | xargs kill -9
 ps ax | grep java | awk '{ print $1 }' | xargs kill -9
 ps ax | grep python | awk '{ print $1 }' | xargs kill -9
 rm -rf /home/pi/events/serverip.txt /home/pi/events/displaylock.txt /home/pi/events/jslock.txt /home/pi/events/js.txt
+netstat -peanut | awk '{ print $9 }' | grep python | sed 's:/python::g' | xargs kill -9
 
 SERVICE_NAME="PARKING_SPOT";
 PORT=5683;
