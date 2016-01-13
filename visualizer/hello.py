@@ -52,19 +52,18 @@ def billing():
     reservations = json.loads(getData('reservations'))
     prices = []
     for spot in spots:
-        if spot['state'] == "occupied" or spot['state'] == "reserved":
-            for reservation in reservations:
-                if reservation['parkingSpotId'] == spot['parkingSpotId']:
-                    start = reservation['from']
-                    end = reservation['to']
-                    now = time.time()
-                    if end > now:
-                        diff = (now - start)
-                    else:
-                        diff = (end - start)
-                    price = spot['price']
-                    cost = diff * price
-                    prices.append({'parkingSpotId': spot['parkingSpotId'], 'reservationId': reservation['reservationId'], 'cost': cost})
+        for reservation in reservations:
+            if reservation['parkingSpotId'] == spot['parkingSpotId']:
+                start = reservation['from']
+                end = reservation['to']
+                now = time.time()
+                if end > now:
+                    diff = (now - start)
+                else:
+                    diff = (end - start)
+                price = spot['price']
+                cost = diff * price
+                prices.append({'parkingSpotId': spot['parkingSpotId'], 'reservationId': reservation['reservationId'], 'cost': cost})
 
     return json.dumps(prices)
 
