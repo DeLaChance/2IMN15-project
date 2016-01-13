@@ -59,6 +59,11 @@ function repopulateTable(name) {
             $("[data-title='" + name + "']").html(name + " (" + json.length + ")")
             var rows = $("[data-name='" + name + "'] tbody").find("tr")
 
+            // If table does not exist yet
+            if (rows.length == 0 && json.length > 0) {
+                location.reload()
+            }
+
             // Update existing rows
             for (var j = 0; j < rows.length && j < json.length; j++) {
                 var obj = json[j]
