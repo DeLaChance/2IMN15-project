@@ -8,42 +8,102 @@ function getTable(selector, url) {
 }
 
 function getAllTables(callback) {
-    $.get('/api/sqlite_sequence', function(data) {
-        var json = JSON.parse(data)
-        callback(json)
-    })
+    var json;
+    jQuery.ajax({
+        url: '/api/sqlite_sequence',
+        success: function (data) {
+            json = JSON.parse(data)
+        },
+        async: false
+    });
+    return json;
+}
+
+function showTables(json) {
+    for (var k in json) {
+        var name = json[k].name
+        var amount = json[k].seq
+        appendTable("#tables", name, amount)
+    }
+}
+
+function clearTables() {
+    $("#tables").html("")
 }
 
 $(document).ready(function() {
+    var tables = getAllTables()
+    showTables(tables)
+    setInterval(function() {
+        repopulateTables(tables)
+    }, 1000)
 
-    getAllTables(function(json) {
-        for (var k in json) {
-            var name = json[k].name
-            var amount = json[k].seq
-            appendTable("#tables", name, amount)
-        }
-    });
 })
 
 function appendTable(target, name, amount) {
     console.log(target, name, amount)
-    $.get('/api/' + name, function(data) {
-        var json = JSON.parse(data)
-        var title = "<h3>" + name + " (" + amount + ")" + "</h3>\n<hr>\n"
-        var table = createTable(json)
-        $(target).append(title + table)
-     })
+    jQuery.ajax({
+        url: '/api/' + name,
+        success: function (data) {
+            var json = JSON.parse(data)
+            var title = "<h3>" + name + " (" + amount + ")" + "</h3>\n<hr>\n"
+            var table = createTable(name, json)
+            $(target).append(title + table)
+        },
+        async: false
+    });
 }
 
-//updateTable('#parkingspots', '/api/parkingspots')
-////updateTable('#reservations', '/api/reservations')
-//updateTable('#reservations', '/api/null')
+function repopulateTables(tables) {
+    for (var i = 0; i < tables.length; i++) {
+        var name = tables[i].name
+        console.log(name)
+        jQuery.ajax({
+            url: '/api/' + name,
+            success: function (data) {
+                var json = JSON.parse(data)
+                var rows = $("[data-name='" + name + "'] tbody").find("tr")
 
-function createTable(json, tableClass) {
+                // Update existing rows
+                for (var j = 0; j < rows.length && j < json.length; j++) {
+                    var obj = json[j]
+                    var row = ""
+                    for(var k in obj) {
+                        row += "<td> " + obj[k] + " </td>\n"
+                    }
+                    $(rows[j]).html(row)
+                }
+
+                // Handle remaining rows
+                if (rows.length > json.length) {
+                    for (var j = json.length - 1; j < rows.length; j++) {
+                        $rows[j].remove()
+                    }
+                }
+
+                // Handle remaining data
+                if (json.length > rows.length) {
+                    for (var j = rows.length - 1; j < json.length; j++) {
+                        var obj = json[j]
+                        var row = "<tr>\n"
+                        for(var k in obj) {
+                            row += "<td> " + obj[k] + " </td>\n"
+                        }
+                        row += "</tr>\n"
+                        $("[data-name='" + name + "'] tbody").append(row)
+                    }
+                }
+            },
+            async: false
+        });
+    }
+}
+
+function createTable(name, json, tableClass) {
     if (json.length == 0)
         return "<span class='faded'>No data available</span>"
 
-    var table = "<table class='" + tableClass + "'>\n"
+    var table = "<table data-name='" + name + "' class='" + tableClass + "'>\n"
 
     // Table head
     var thead = "\t<thead>\n"

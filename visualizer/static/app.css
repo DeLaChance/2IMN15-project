@@ -30,7 +30,8 @@ header {
     margin-top: 3px;
 }
 
-.header__tab:hover {
+.header__tab:hover,
+.header__tab.active {
     background-color: white;
     color: #007591;
 }

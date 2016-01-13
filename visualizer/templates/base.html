@@ -14,9 +14,9 @@
                     <h1>Parking Manager</h1>
                 </div>
                 <div clas="nav">
-                    <a class="header__tab" href="/page/attendant">Attendant</a>
-                    <a class="header__tab" href="/page/tables">Tables</a>
-                    <a class="header__tab" href="/page/reports">Reports</a>
+                    <a class="header__tab {%- if request.path == '/page/attendant' %} active{% endif %}"  href="/page/attendant">Attendant</a>
+                    <a class="header__tab {%- if request.path == '/page/tables' %} active{% endif %}" href="/page/tables">Tables</a>
+                    <a class="header__tab {%- if request.path == '/page/reports' %} active{% endif %}" href="/page/reports">Reports</a>
                 </div>
             </div>
         </div>
