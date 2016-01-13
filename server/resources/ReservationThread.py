@@ -1,9 +1,11 @@
 import sqlite3
 import sys
 import os
+import thread
+import time
 import RequestUtils
 
-DATABASE = os.path.dirname(os.path.realpath(__file__))+"/sqlite.db"
+DATABASE = os.path.dirname(os.path.realpath(__file__))+"/../sqlite.db"
 
 def startReservation(parkingSpotId):
     print("reserveParkingSpot: start")
@@ -34,11 +36,21 @@ def removeReservation(parkingSpotId):
     print("endpoint=" + endpoint)
     RequestUtils.endReservation(endpoint)
 
-def action(action, parkingSpot):
-    print("reserveParkingSpot: action=" + str(action) + ",b=" + str(action=="start") + ", parkingSpot=" + str(parkingSpot))
-    if action == "start":
+def action(actionString, parkingSpot, timestamp):
+    duration = timestamp - time.time()
+
+    if duration < 0:
+        duration = 0
+
+    time.sleep(duration)
+
+    #print("reserveParkingSpot: action=" + str(actionString) + ",b=" + str(actionString=="start") + ", parkingSpot=" + str(parkingSpot))
+    if actionString == "start":
         startReservation(parkingSpot)
-    if action =="remove":
+    if actionString =="remove":
         removeReservation(parkingSpot)
 
-action(sys.argv[1], sys.argv[2])
+#action(sys.argv[1], sys.argv[2])
+
+def init(actionString, parkingSpotId, time):
+    thread.start_new_thread(action, (actionString, parkingSpotId, time))

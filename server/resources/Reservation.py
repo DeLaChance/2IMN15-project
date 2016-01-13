@@ -4,6 +4,7 @@ import os
 from BaseResource import BaseResource
 import subprocess
 import datetime
+import ReservationThread
 
 
 class Reservation(BaseResource):
@@ -82,19 +83,7 @@ class Reservation(BaseResource):
         return self
 
     def schedule_script(self, action, id, time):
-        """
-        Calls the shell script to schedule task at time :time
-        Usage example: schedule_script("remove", "2", int(time.time()))
-        """
-
-        # format to [[CC]YY]MMDDhhmm[.ss]
-        formattedTime = datetime.datetime.fromtimestamp(
-            int(time)
-        ).strftime('%Y%m%d%H%M.%S')
-
-        # call process, make sure the script is executable (chmod +x)
-        print("Calling schedule_script action=" + str(action) + ",id=" + str(id) + ",formattedTime=" + str(formattedTime))
-        subprocess.call([os.path.dirname(os.path.realpath(__file__))+"/../schedule_script.sh", str(action), str(id), str(formattedTime)])
+        ReservationThread.init(action, id, time)
 
     def _fromto_is_ok(self, parkingspotId, fromm, to):
         query = "SELECT * FROM reservations WHERE parkingSpotId = {}".format(parkingspotId)
