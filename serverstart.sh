@@ -6,7 +6,7 @@ OWN_IP=$1
 
 # clean-up
 rm -rf jsUpdate-*
-netstat -peanut | egrep '(5700|5684|5683|8080)' | awk '{ print $8 }' | sed 's:/java::g' | xargs kill -9
+ps ax | grep LWM2M | awk '{ print $1 }' | xargs kill -9
 
 # start Java leshan-standalone (lwm2m)
 java -jar LWM2MServer.jar &

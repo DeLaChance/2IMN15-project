@@ -143,6 +143,7 @@ def findEndpointById(pId):
 
 
 def makeReservation(endpoint, vehicleID):
+    print("makeReservation endpoint=" + endpoint + ", vehicleID=" + vehicleID)
     # update vehicleID
     makeHTTPRequest("/api/clients/" + endpoint + "/32700/0/32802","PUT",{"id": 32802, "value": vehicleID})
     # update state
@@ -155,22 +156,30 @@ def endReservation(endpoint):
 
 def enterOrLeaveVehicle(endpoint):
     s = getState(endpoint)
-    if( s == "reserved "):
+    print("enterOrLeaveVehicle s=" + s + ", a=" + str("reserved" in s) + ", b=" + str("ocuppied" in s))
+    if( "reserved" in s ):
         enterVehicle(endpoint)
-    if( s == "occupied" ):
+    if( "occupied" in s ):
         leaveVehicle(endpoint)
 
 def enterVehicle(endpoint):
+    print("enterVehicle endpoint=" + endpoint)
     # update state
     makeHTTPRequest("/api/clients/" + endpoint + "/32700/0/32801","PUT",{"id": 32801, "value": "occupied"})
     # update led-display
     makeHTTPRequest("/api/clients/" + endpoint + "/3341/0/5527","PUT",{"id": 5527, "value": "red"})
+    # update DB
+    query="UPDATE `parkingspots` SET state='occupied' WHERE endpoint='" + endpoint + "'";
+    executeSQL(query)
 
 def leaveVehicle(endpoint):
+    print("leaveVehicle endpoint=" + endpoint)
     # update vehicleID
     makeHTTPRequest("/api/clients/" + endpoint + "/32700/0/32802","PUT",{"id": 32802, "value": ""})
     # update state
     makeHTTPRequest("/api/clients/" + endpoint + "/32700/0/32801","PUT",{"id": 32801, "value": "free"})
     # update led-display
     makeHTTPRequest("/api/clients/" + endpoint + "/3341/0/5527","PUT",{"id": 5527, "value": "green"})
-
+    # update DB
+    query="UPDATE `parkingspots` SET state='free' WHERE endpoint='" + endpoint + "'";
+    executeSQL(query)

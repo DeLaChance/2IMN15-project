@@ -18,6 +18,13 @@ def getState():
     try:
         import os.path
         displayfileuri = config.HOME_DIR + "display.txt"
+        lockfileuri = config.HOME_DIR + "displaylock.txt"
+
+        f1 = open(lockfileuri, "r+")
+
+        if( os.path.exists(lockfileuri) ):
+            print("Python: lockfile for display exists")
+            return ""
 
         f2 = open(displayfileuri, 'r+')
         s = f2.read()
@@ -27,37 +34,6 @@ def getState():
         print("getState e=" + str(e))
 
     return s
-
-def setState(s):
-    try:
-        import os.path
-        lockfileuri = config.HOME_DIR + "displaylock.txt"
-        displayfileuri = config.HOME_DIR + "display.txt"
-
-        while( os.path.exists(lockfileuri) ):
-            time.sleep(3);
-            os.remove(lockfileuri)
-
-        print("Python: entering critical section display")
-
-        # open lock file and display file
-        f1 = open(lockfileuri, 'w')
-        f2 = open(displayfileuri, 'w')
-
-        f1.write("a")
-        f2.write(s)
-
-        f1.close()
-        f2.close()
-
-        # delete lock file
-        if( os.path.exists(lockfileuri) ):
-            os.remove(lockfileuri)
-        print("Python: leaving critical section display")
-    except Exception as e:
-        print("setState e=" + str(e))
-
-
 
 def setJoyStickState(s):
     try:
@@ -70,8 +46,7 @@ def setJoyStickState(s):
             return
 
         while( os.path.exists(lockfileuri) ):
-            time.sleep(3);
-            os.remove(lockfileuri)
+            time.sleep(3); # if java is reading it, it will be done within this time
 
         print("Python: entering critical section joystick")
 
@@ -128,7 +103,7 @@ def keepUpdatingDisplay(thread_name, sense):
 
     while True:
         state = getState()
-        if old_state != state:
+        if old_state != state and len(state) > 0:
             print("keepUpdatingDisplay: state=" + state + "\n")
 
             if state == "green":
