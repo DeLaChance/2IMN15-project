@@ -40,12 +40,11 @@ $(document).ready(function() {
 })
 
 function appendTable(target, name) {
-    console.log(target, name)
     jQuery.ajax({
         url: '/api/' + name,
         success: function (data) {
             var json = JSON.parse(data)
-            var title = "<h3>" + name + " (" + json.length + ")" + "</h3>\n<hr>\n"
+            var title = "<h3 data-title='" + name + "'>" + name + " (" + json.length + ")" + "</h3>\n<hr>\n"
             var table = createTable(name, json)
             $(target).append(title + table)
         },
@@ -56,11 +55,11 @@ function appendTable(target, name) {
 function repopulateTables(tables) {
     for (var i = 0; i < tables.length; i++) {
         var name = tables[i].name
-        console.log(name)
         jQuery.ajax({
             url: '/api/' + name,
             success: function (data) {
                 var json = JSON.parse(data)
+                $("[data-title='" + name + "']").html(name + " (" + json.length + ")")
                 var rows = $("[data-name='" + name + "'] tbody").find("tr")
 
                 // Update existing rows
