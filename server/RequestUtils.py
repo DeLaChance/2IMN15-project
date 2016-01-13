@@ -125,7 +125,7 @@ def writeToDB(endpoint, pId):
 
     if( len(rows) == 0 ):
         # endpoint is a new entry in DB
-        insertQuery = "INSERT INTO `parkingspots`(`parkingSpotId`,`state`,`price`,`endpoint`) VALUES ('" + str(pId) + "','free',0,'" + endpoint + "')"
+        insertQuery = "INSERT INTO `parkingspots`(`parkingSpotId`,`state`,`price`,`endpoint`) VALUES ('" + str(pId) + "','free',1,'" + endpoint + "')"
         print("RequestUtils: inserting endpoint=" + endpoint + " into sqliteDB")
         executeSQL(insertQuery)
         return True
@@ -171,6 +171,10 @@ def enterVehicle(endpoint):
     # update DB
     query="UPDATE `parkingspots` SET state='occupied' WHERE endpoint='" + endpoint + "'";
     executeSQL(query)
+    timestamp = int(time.time())
+    id = resolveId(endpoint)
+    query="UPDATE `reservations` SET occupied={} WHERE parkingSpotId={}".format(timestamp, id);
+    executeSQL(query)
 
 def leaveVehicle(endpoint):
     print("leaveVehicle endpoint=" + endpoint)
@@ -182,4 +186,7 @@ def leaveVehicle(endpoint):
     makeHTTPRequest("/api/clients/" + endpoint + "/3341/0/5527","PUT",{"id": 5527, "value": "green"})
     # update DB
     query="UPDATE `parkingspots` SET state='free' WHERE endpoint='" + endpoint + "'";
+    executeSQL(query)
+    id = resolveId(endpoint)
+    query="UPDATE `reservations` SET occupied=NULL WHERE parkingSpotId={}".format(id);
     executeSQL(query)
