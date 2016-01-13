@@ -76,14 +76,14 @@ function repopulateTables(tables) {
 
                 // Handle remaining rows
                 if (rows.length > json.length) {
-                    for (var j = json.length - 1; j < rows.length; j++) {
-                        $rows[j].remove()
+                    for (var j = json.length; j < rows.length; j++) {
+                        $(rows[j]).remove()
                     }
                 }
 
                 // Handle remaining data
                 if (json.length > rows.length) {
-                    for (var j = rows.length - 1; j < json.length; j++) {
+                    for (var j = rows.length; j < json.length; j++) {
                         var obj = json[j]
                         var row = "<tr>\n"
                         for(var k in obj) {
