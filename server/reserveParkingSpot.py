@@ -1,8 +1,9 @@
 import sqlite3
 import sys
+import os
 import RequestUtils
 
-DATABASE = 'sqlite.db'
+DATABASE = os.path.dirname(os.path.realpath(__file__))+"/sqlite.db"
 
 def startReservation(parkingSpotId):
     print("reserveParkingSpot: start")
@@ -11,13 +12,13 @@ def startReservation(parkingSpotId):
     cursor = connection.cursor()
     cursor.execute("UPDATE parkingspots SET state = 'reserved' WHERE parkingSpotId = {}".format(parkingSpotId))
 
+    connection.commit()
+    connection.close()
+
     # update parkingspot through lwm2m
     endpoint = RequestUtils.findEndpointById(parkingSpotId)
     print("endpoint=" + endpoint)
     RequestUtils.makeReservation(endpoint,"XD-LOL")
-
-    connection.commit()
-    connection.close()
 
 def removeReservation(parkingSpotId):
     print("reserveParkingSpot: remove")
@@ -25,13 +26,13 @@ def removeReservation(parkingSpotId):
     cursor = connection.cursor()
     cursor.execute("UPDATE parkingspots SET state = 'free' WHERE parkingSpotId = {}".format(parkingSpotId))
 
+    connection.commit()
+    connection.close()
+
     # update parkingspot through lwm2m
     endpoint = RequestUtils.findEndpointById(parkingSpotId)
     print("endpoint=" + endpoint)
     RequestUtils.endReservation(endpoint)
-
-    connection.commit()
-    connection.close()
 
 def action(action, parkingSpot):
     print("reserveParkingSpot: action=" + str(action) + ",b=" + str(action=="start") + ", parkingSpot=" + str(parkingSpot))
