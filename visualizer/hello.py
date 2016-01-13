@@ -46,6 +46,28 @@ def state():
             reserved += 1
     return json.dumps({"free": free, "occupied": occupied, "reserved": reserved})
 
+@app.route("/billing/")
+def billing():
+    spots = json.loads(getData('parkingspots'))
+    reservations = json.loads(getData('reservations'))
+    prices = [9000]
+    indx = 0
+    for spot in spots:
+        if spot['state'] == "occupied" or spot['state'] == "reserved":
+            for reservation in reservations:
+                if reservation['parkingSpotId'] == spot['parkingSpotId']:
+                    start = reservation['from']
+                    now = time.time()
+                    diff = (now - start)
+                    price = spot['price']
+                    cost = diff * price
+                    prices[indx] = {'parkingSpotId': spot['parkingSpotId'], 'cost': cost}
+                    indx += 1
+                    # prices[spot['parkingSpotId']] = [cost]
+
+    return json.dumps(prices)
+
+
 @app.route("/page/<page>")
 def page(page):
     return render_template(page + ".html")
