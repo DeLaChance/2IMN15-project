@@ -1,12 +1,12 @@
 import json, time, sqlite3
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect
 app = Flask(__name__)
 
 DATABASE = '../server/sqlite.db'
 
 @app.route("/")
 def hello():
-    return render_template('base.html')
+    return redirect('/pages/states')
 
 def dict_factory(cursor, row):
     d = {}
@@ -14,24 +14,28 @@ def dict_factory(cursor, row):
         d[col[0]] = row[idx]
     return d
 
-def getData(table):
+def getData(table, col='*'):
     connection = sqlite3.connect(DATABASE)
     connection.text_factory = str
     connection.row_factory = dict_factory
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM `%s`" % table)
+    cursor.execute("SELECT %s FROM `%s`" % (col, table))
     output = json.dumps(cursor.fetchall())
     connection.commit()
     connection.close()
     return output
 
-@app.route("/api/<table>")
+@app.route("/api/tables/")
+def tables():
+    return getData('sqlite_sequence', 'name')
+
+@app.route("/api/tables/<table>")
 def parkingspots(table):
     if table == "null":
         return "[]"
     return getData(table)
 
-@app.route("/state/")
+@app.route("/api/states")
 def state():
     data = json.loads(getData('parkingspots'))
     reserved = 0
@@ -46,7 +50,7 @@ def state():
             reserved += 1
     return json.dumps({"free": free, "occupied": occupied, "reserved": reserved})
 
-@app.route("/billing/")
+@app.route("/api/billing")
 def billing():
     spots = json.loads(getData('parkingspots'))
     reservations = json.loads(getData('reservations'))
@@ -69,7 +73,7 @@ def billing():
     return json.dumps(prices)
 
 
-@app.route("/page/<page>")
+@app.route("/pages/<page>")
 def page(page):
     return render_template(page + ".html")
 

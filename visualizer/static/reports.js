@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    var api = "/billing/"
+    var api = "/api/billing"
     var name = "Invoices"
     createTableContainer('#tables', api, name)
     setInterval(function() {

@@ -7,7 +7,7 @@ $(document).ready(function() {
 
 function getStates() {
     jQuery.ajax({
-        url: '/state/',
+        url: '/api/states',
         success: function (data) {
             json = JSON.parse(data)
             $("#occupied").html(json.occupied)

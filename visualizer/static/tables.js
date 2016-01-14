@@ -18,6 +18,7 @@ Date.prototype.format = function() {
 
 /** Create table container. */
 function createTableContainer(target, api, name) {
+    console.log("Creating table " + name)
     jQuery.ajax({
         url: api,
         success: function (data) {
@@ -111,7 +112,7 @@ function format(key, value){
 function getAllTables() {
     var json;
     jQuery.ajax({
-        url: '/api/sqlite_sequence',
+        url: '/api/tables/',
         success: function (data) {
             json = JSON.parse(data)
         },

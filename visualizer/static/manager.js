@@ -1,7 +1,7 @@
 $(document).ready(function() {
     var tables = getAllTables()
     for (var table in tables) {
-        var api = "/api/" + tables[table].name
+        var api = "/api/tables/" + tables[table].name
         var name = tables[table].name.capitalizeFirst()
         createTableContainer('#tables', api, name)
     }
